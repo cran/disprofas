@@ -193,7 +193,7 @@ test_that("gep_by_nera_does_not_converge", {
 
   expect_warning(
     gep_by_nera(n_p = n_tp, K = K, mean_diff = mean_diff, S_pool = S,
-                F_crit = F_crit, y = y_b1, max_trial = 50, tol = 1e-15),
+                F_crit = F_crit, y = y_b1, max_trial = 10, tol = 1e-15),
     "Newton-Raphson search did not converge"
   )
 })

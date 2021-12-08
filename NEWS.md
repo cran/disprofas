@@ -1,5 +1,12 @@
 ---
 
+# disprofas 0.1.3
+
+- Made test parameters of function gep_by_nera more restrictive in order to
+  throw a warning on testing.
+
+---
+
 # disprofas 0.1.2
 
 - Example from unexported function was removed.

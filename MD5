@@ -1,6 +1,6 @@
-5aff38f21ce68d1eac3f0d404f0f392a *DESCRIPTION
+8f617b88c59bd672bba1c3be6ac477af *DESCRIPTION
 969efb7ca00bd4df5988c0ed352d31c9 *NAMESPACE
-71be9df26976ec4b2bf6f89180e01c7f *NEWS.md
+566e862704242648c70a2a4f9421d9f1 *NEWS.md
 bc3257648768b90979425023aaf283fe *R/bootstrap.R
 1e34cd46f72341c8147a55d99d88b262 *R/data.R
 3e24b6080e617a1ee571ca5a3d0f13e3 *R/error_handling.R
@@ -10,7 +10,7 @@ acfb9a68ba01679a9e1344b68347d11c *R/generic.R
 53bde1007916da613a9cdc5f2c67428d *R/statistics.R
 ebce7af047e229500a6872dbf223ccb0 *R/utility.R
 a9bc982e8958c1290a74d9c3e91a6dcd *README.md
-42a9c12096ad519ea77d8a075009bac6 *build/partial.rdb
+3398084a69b31ce4d10402a06d7a1340 *build/partial.rdb
 15115c4f04a659a30b0c019c6a745625 *data/dip1.RData
 f53800f65308d95d6310336ce525156b *data/dip2.RData
 bd320cc47a9f75fb541396dce22b3e7f *data/dip3.RData
@@ -75,7 +75,7 @@ b44e2e30b7417788c524785441c907fc *man/try_get_model.Rd
 e71848d75ff116660be0726c84150841 *tests/testthat/test-f1.R
 5c02f1ad43b1ae588f07bd6d04b6203f *tests/testthat/test-f2.R
 1c2cefc321812b5ae18ef44dacd6244c *tests/testthat/test-generic.R
-2758302fe46f9ac4db9f511ff88c5a97 *tests/testthat/test-gep_by_nera.R
+903be42826a245529f69e51e38d9a28d *tests/testthat/test-gep_by_nera.R
 7fd390d822f19d530ca56ec64d8d77d4 *tests/testthat/test-get_f1.R
 737daf6109f3392b6cc3cdaa6b94574d *tests/testthat/test-get_f2.R
 b2cb31db33c301999b83de158e06a7de *tests/testthat/test-get_hotellings.R
