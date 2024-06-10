@@ -9,64 +9,75 @@ bootstrap_f2(
   tcol,
   grouping,
   rand_mode = "complete",
-  R = 999,
+  rr = 999,
   each = 12,
   new_seed = 100,
   confid = 0.9,
-  use_EMA = "no",
+  use_ema = "no",
   bounds = c(1, 85),
+  nsf = c(1, 2),
   ...
 )
 }
 \arguments{
 \item{data}{A data frame with the dissolution profile data in wide format.}
 
-\item{tcol}{A vector of indices specifying the columns in \code{data} that
-contain the \% release values. The length of \code{tcol} must be three or
-longer.}
+\item{tcol}{A vector of indices that specifies the columns in \code{data}
+that contain the \% release values. The length of \code{tcol} must be
+three or longer.}
 
-\item{grouping}{A character string specifying the column in \code{data} that
-contains the group names (i.e. a factorial variable, e.g., for the
+\item{grouping}{A character string that specifies the column in \code{data}
+that contains the group names (i.e. a factorial variable, e.g., for the
 differentiation of batches or formulations of a drug product).}
 
-\item{rand_mode}{A character string indicating if complete profiles shall be
-randomised (\code{"complete"}, the default) or individual data points
-(\code{"individual"}).}
+\item{rand_mode}{A character string that indicates whether complete profiles
+shall be randomised (\code{"complete"}, the default) or individual data
+points (\code{"individual"}).}
 
-\item{R}{An integer specifying the number of bootstrap replicates. The
+\item{rr}{An integer that specifies the number of bootstrap replicates. The
 default is \code{999}.}
 
-\item{each}{An integer specifying the number of dissolution profiles to be
-selected per group per randomisation round. The default is \code{12}.}
+\item{each}{An integer that specifies the number of dissolution profiles to
+be selected per group per randomisation round. The default is \code{12}.}
 
 \item{new_seed}{An integer for setting the seed for random number generation.
 The default is \code{100}.}
 
-\item{confid}{A numeric value between 0 and 1 specifying the confidence limit
-for the calculation of the bootstrap confidence intervals. The default is
-\code{0.9}.}
+\item{confid}{A numeric value between 0 and 1 that specifies the confidence
+limit for the calculation of the bootstrap confidence intervals. The
+default is \code{0.9}.}
 
-\item{use_EMA}{A character string indicating if the similarity factor
-\eqn{f_2} should be calculated according to the EMA guideline \dQuote{On
-the investigation of bioequivalence} (\code{"yes"}) or not (\code{"no"},
-the default). The default is \code{"no"} because the bootstrap \eqn{f_2}
-method is one of the possible solutions if the condition concerning the
-variability between the profiles does not allow the evaluation of \eqn{f_2}
-according to the EMA guideline. A third option is \code{"ignore"}. If
-\code{use_EMA} is \code{"yes"} or \code{"no"} the appropriate profile
-portion is determined on the basis of the values of the parameter
-\code{bounds}. If it is \code{"ignore"}, the complete profiles are used as
-specified by the parameter \code{tcol}.}
+\item{use_ema}{A character string that indicates whether the similarity
+factor \eqn{f_2} should be calculated according to the EMA guideline
+\dQuote{On the investigation of bioequivalence} (\code{"yes"}) or not
+(\code{"no"}, the default). The default is \code{"no"} because the
+bootstrap \eqn{f_2} method is one of the possible solutions if the
+condition concerning the variability between the profiles does not allow
+the evaluation of \eqn{f_2} according to the EMA guideline. A third option
+is \code{"ignore"}. If \code{use_ema} is \code{"yes"}, the \code{bounds}
+are \code{c(0, 85)} per definition. If \code{use_ema} is \code{"no"}, the
+appropriate profile portion is determined on the basis of the values of
+the parameter \code{bounds}. If \code{use_ema} is \code{"ignore"}, the
+complete profiles are used as specified by the parameter \code{tcol}.}
 
-\item{bounds}{A numeric vector of the form \code{c(lower, upper)} specifying
-the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-drug release given that \code{use_EMA} is \code{"no"}. The default is
-\code{c(1, 85)}. Mean \% release values of any of the two groups being
+\item{bounds}{A numeric vector of the form \code{c(lower, upper)} that
+specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+the \% drug release given that \code{use_ema} is \code{"no"}. The default
+is \code{c(1, 85)}. Mean \% release values of any of the two groups being
 compared that are smaller than or equal to the lower bound are ignored and
 only the first mean \% release value that is greater than or equal to the
 upper bound is included while all the subsequent values are ignored. If
-\code{use_EMA} is \code{"yes"} the \code{bounds} are \code{c(1, 85)} per
-definition.}
+\code{use_ema} is \code{"yes"} the \code{bounds} are \code{c(0, 85)} per
+definition. If \code{use_ema} is \code{"ignore"} the \code{bounds} are
+disregarded.}
+
+\item{nsf}{A vector of positive integers that specify the \dQuote{number
+of significant figures} (nsf) of the corresponding values of the
+\code{bounds} parameter. It must thus have the same length as the
+\code{bounds} parameter. Before the \% release values are compared with
+the limits that are specified by the \code{bounds} parameter, they are
+rounded to the corresponding number of significant figures as specified
+by the \code{nsf} parameter.}
 
 \item{...}{Named parameters of the functions \code{stat.fun()},
 \code{ran.fun()} and \code{boot()}.}
@@ -77,21 +88,21 @@ containing the following list elements:
 \item{Boot}{An object of class \sQuote{\code{boot}} with the corresponding
   components.}
 \item{Profile.TP}{A named numeric vector of the columns in \code{data}
-  specified by \code{tcol} and depending on the selection of \code{use_EMA}.
-  Given that the column names contain extractable numeric information,
-  e.g., specifying the testing time points of the dissolution profile, it
-  contains the corresponding values. Elements where no numeric information
-  could be extracted are \code{NA}.}
+  specified by \code{tcol} and depending on the selection of \code{use_ema}.
+  Given that the column names contain extractable numeric information, e.g.,
+  the testing time points of the dissolution profile, it contains the
+  corresponding numeric values. Elements where no numeric information could
+  be extracted are \code{NA}.}
 \item{L}{A vector of the Jackknife leave-one-out-values.}
 \item{CI}{An object of class \sQuote{\code{bootci}} which contains the
   intervals.}
 \item{BCa_CI}{The lower and upper limits of the BCa interval calculated
   by the \code{boot.ci()} function from the \sQuote{\code{boot}} package.}
-\item{ShahBCa_CI}{The lower and upper limits of the BCa interval calculated
+\item{Shah_BCa_CI}{The lower and upper limits of the BCa interval calculated
   according to Shah (Shah 1998).}
 }
 \description{
-The function \code{bootstrap_f2()} generates \code{R} bootstrap replicates
+The function \code{bootstrap_f2()} generates \code{rr} bootstrap replicates
 of the similarity factor \eqn{f_2} based on resampling of complete profiles
 (nonparametric bootstrap) or on resampling per time point the values
 between profiles (parametric bootstrap). Estimates of \dQuote{normal},
@@ -144,9 +155,8 @@ testing, and \emph{in vivo} bioequivalence documentation (SUPAC-IR). 1995.\cr
 
 European Medicines Agency (EMA), Committee for Medicinal Products for
 Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-\url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-guideline-investigation-bioequivalence-rev1_en.pdf}
+\href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+CPMP/EWP/QWP/1401/98 Rev. 1}.
 
 Stevens, R. E., Gray, V., Dorantes, A., Gold, L., and Pham, L. Scientific
 and regulatory standards for assessing product performance using the
@@ -160,6 +170,6 @@ profile comparison - statistics and analysis of the similarity factor,
 \doi{10.1023/A:1011976615750}
 }
 \seealso{
-\code{\link{get_jackknife_values}}, \code{\link[boot]{boot}},
-  \code{\link[boot]{boot.ci}}, \code{\link{mimcr}}, \code{\link{mztia}}.
+\code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}},
+  \code{\link{mimcr}}, \code{\link{mztia}}.
 }

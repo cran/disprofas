@@ -1,53 +1,59 @@
 #' Bootstrap f2
 #'
-#' The function \code{bootstrap_f2()} generates \code{R} bootstrap replicates
+#' The function \code{bootstrap_f2()} generates \code{rr} bootstrap replicates
 #' of the similarity factor \eqn{f_2} based on resampling of complete profiles
 #' (nonparametric bootstrap) or on resampling per time point the values
 #' between profiles (parametric bootstrap). Estimates of \dQuote{normal},
 #' \dQuote{basic}, \dQuote{student}, \dQuote{percent} and of
 #' \dQuote{bias-corrected, accelerated} (BCa) percentile intervals are returned.
 #'
-#' @param data A data frame with the dissolution profile data in wide format.
-#' @param tcol A vector of indices specifying the columns in \code{data} that
-#'   contain the \% release values. The length of \code{tcol} must be three or
-#'   longer.
-#' @param grouping A character string specifying the column in \code{data} that
-#'   contains the group names (i.e. a factorial variable, e.g., for the
-#'   differentiation of batches or formulations of a drug product).
-#' @param rand_mode A character string indicating if complete profiles shall be
-#'   randomised (\code{"complete"}, the default) or individual data points
-#'   (\code{"individual"}).
-#' @param R An integer specifying the number of bootstrap replicates. The
+#' @param tcol A vector of indices that specifies the columns in \code{data}
+#'   that contain the \% release values. The length of \code{tcol} must be
+#'   three or longer.
+#' @param rand_mode A character string that indicates whether complete profiles
+#'   shall be randomised (\code{"complete"}, the default) or individual data
+#'   points (\code{"individual"}).
+#' @param rr An integer that specifies the number of bootstrap replicates. The
 #'   default is \code{999}.
-#' @param each An integer specifying the number of dissolution profiles to be
-#'   selected per group per randomisation round. The default is \code{12}.
+#' @param each An integer that specifies the number of dissolution profiles to
+#'   be selected per group per randomisation round. The default is \code{12}.
 #' @param new_seed An integer for setting the seed for random number generation.
 #'   The default is \code{100}.
-#' @param confid A numeric value between 0 and 1 specifying the confidence limit
-#'   for the calculation of the bootstrap confidence intervals. The default is
-#'   \code{0.9}.
-#' @param use_EMA A character string indicating if the similarity factor
-#'   \eqn{f_2} should be calculated according to the EMA guideline \dQuote{On
-#'   the investigation of bioequivalence} (\code{"yes"}) or not (\code{"no"},
-#'   the default). The default is \code{"no"} because the bootstrap \eqn{f_2}
-#'   method is one of the possible solutions if the condition concerning the
-#'   variability between the profiles does not allow the evaluation of \eqn{f_2}
-#'   according to the EMA guideline. A third option is \code{"ignore"}. If
-#'   \code{use_EMA} is \code{"yes"} or \code{"no"} the appropriate profile
-#'   portion is determined on the basis of the values of the parameter
-#'   \code{bounds}. If it is \code{"ignore"}, the complete profiles are used as
-#'   specified by the parameter \code{tcol}.
-#' @param bounds A numeric vector of the form \code{c(lower, upper)} specifying
-#'   the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-#'   drug release given that \code{use_EMA} is \code{"no"}. The default is
-#'   \code{c(1, 85)}. Mean \% release values of any of the two groups being
+#' @param confid A numeric value between 0 and 1 that specifies the confidence
+#'   limit for the calculation of the bootstrap confidence intervals. The
+#'   default is \code{0.9}.
+#' @param use_ema A character string that indicates whether the similarity
+#'   factor \eqn{f_2} should be calculated according to the EMA guideline
+#'   \dQuote{On the investigation of bioequivalence} (\code{"yes"}) or not
+#'   (\code{"no"}, the default). The default is \code{"no"} because the
+#'   bootstrap \eqn{f_2} method is one of the possible solutions if the
+#'   condition concerning the variability between the profiles does not allow
+#'   the evaluation of \eqn{f_2} according to the EMA guideline. A third option
+#'   is \code{"ignore"}. If \code{use_ema} is \code{"yes"}, the \code{bounds}
+#'   are \code{c(0, 85)} per definition. If \code{use_ema} is \code{"no"}, the
+#'   appropriate profile portion is determined on the basis of the values of
+#'   the parameter \code{bounds}. If \code{use_ema} is \code{"ignore"}, the
+#'   complete profiles are used as specified by the parameter \code{tcol}.
+#' @param bounds A numeric vector of the form \code{c(lower, upper)} that
+#'   specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+#'   the \% drug release given that \code{use_ema} is \code{"no"}. The default
+#'   is \code{c(1, 85)}. Mean \% release values of any of the two groups being
 #'   compared that are smaller than or equal to the lower bound are ignored and
 #'   only the first mean \% release value that is greater than or equal to the
 #'   upper bound is included while all the subsequent values are ignored. If
-#'   \code{use_EMA} is \code{"yes"} the \code{bounds} are \code{c(1, 85)} per
-#'   definition.
+#'   \code{use_ema} is \code{"yes"} the \code{bounds} are \code{c(0, 85)} per
+#'   definition. If \code{use_ema} is \code{"ignore"} the \code{bounds} are
+#'   disregarded.
+#' @param nsf A vector of positive integers that specify the \dQuote{number
+#'   of significant figures} (nsf) of the corresponding values of the
+#'   \code{bounds} parameter. It must thus have the same length as the
+#'   \code{bounds} parameter. Before the \% release values are compared with
+#'   the limits that are specified by the \code{bounds} parameter, they are
+#'   rounded to the corresponding number of significant figures as specified
+#'   by the \code{nsf} parameter.
 #' @param ... Named parameters of the functions \code{stat.fun()},
 #'   \code{ran.fun()} and \code{boot()}.
+#' @inheritParams mimcr
 #'
 #' @details Information on \eqn{f_2} can be found in at least three FDA
 #' guidances and in the guideline of the European Medicines Agency (EMA)
@@ -86,17 +92,17 @@
 #' \item{Boot}{An object of class \sQuote{\code{boot}} with the corresponding
 #'   components.}
 #' \item{Profile.TP}{A named numeric vector of the columns in \code{data}
-#'   specified by \code{tcol} and depending on the selection of \code{use_EMA}.
-#'   Given that the column names contain extractable numeric information,
-#'   e.g., specifying the testing time points of the dissolution profile, it
-#'   contains the corresponding values. Elements where no numeric information
-#'   could be extracted are \code{NA}.}
+#'   specified by \code{tcol} and depending on the selection of \code{use_ema}.
+#'   Given that the column names contain extractable numeric information, e.g.,
+#'   the testing time points of the dissolution profile, it contains the
+#'   corresponding numeric values. Elements where no numeric information could
+#'   be extracted are \code{NA}.}
 #' \item{L}{A vector of the Jackknife leave-one-out-values.}
 #' \item{CI}{An object of class \sQuote{\code{bootci}} which contains the
 #'   intervals.}
 #' \item{BCa_CI}{The lower and upper limits of the BCa interval calculated
 #'   by the \code{boot.ci()} function from the \sQuote{\code{boot}} package.}
-#' \item{ShahBCa_CI}{The lower and upper limits of the BCa interval calculated
+#' \item{Shah_BCa_CI}{The lower and upper limits of the BCa interval calculated
 #'   according to Shah (Shah 1998).}
 #'
 #' @references
@@ -112,9 +118,8 @@
 #'
 #' European Medicines Agency (EMA), Committee for Medicinal Products for
 #' Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-#' CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-#' \url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-#' guideline-investigation-bioequivalence-rev1_en.pdf}
+#' \href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+#' CPMP/EWP/QWP/1401/98 Rev. 1}.
 #'
 #' Stevens, R. E., Gray, V., Dorantes, A., Gold, L., and Pham, L. Scientific
 #' and regulatory standards for assessing product performance using the
@@ -127,8 +132,8 @@
 #' \eqn{f_2}. \emph{Pharm Res}. 1998; \strong{15}(6): 889-896.\cr
 #' \doi{10.1023/A:1011976615750}
 #'
-#' @seealso \code{\link{get_jackknife_values}}, \code{\link[boot]{boot}},
-#'   \code{\link[boot]{boot.ci}}, \code{\link{mimcr}}, \code{\link{mztia}}.
+#' @seealso \code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}},
+#'   \code{\link{mimcr}}, \code{\link{mztia}}.
 #'
 #' @importFrom stats qnorm
 #' @importFrom stats pnorm
@@ -139,22 +144,26 @@
 #' @export
 
 bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
-                   R = 999, each = 12, new_seed = 100, confid = 0.9,
-                   use_EMA = "no", bounds = c(1, 85), ...) {
+                   rr = 999, each = 12, new_seed = 100, confid = 0.9,
+                   use_ema = "no", bounds = c(1, 85), nsf = c(1, 2), ...) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
-  if (!is.numeric(tcol) | length(tcol) < 3) {
+  if (!is.numeric(tcol) || length(tcol) < 3) {
     stop("The parameter tcol must be an integer vector of at least length 3.")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer vector.")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (sum(vapply(data[, tcol], is.numeric, logical(1))) != length(tcol)) {
     stop("Some columns specified by tcol are not numeric.")
+  }
+  if (any(is.na(data[, tcol]))) {
+    stop("Note that data contains NA/NaN values.\n",
+            "  Please consider imputing missing values.")
   }
   if (!is.character(grouping)) {
     stop("The parameter grouping must be string.")
@@ -168,38 +177,50 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
   if (!(rand_mode %in% c("complete", "individual"))) {
     stop("Please specify rand_mode either as \"complete\" or \"individual\".")
   }
-  if (!is.numeric(R) | length(R) > 1) {
-    stop("The parameter R must be an integer of length 1.")
+  if (!is.numeric(rr) || length(rr) > 1) {
+    stop("The parameter rr must be an integer of length 1.")
   }
-  if (!isTRUE(all.equal(R, as.integer(R)))) {
-    stop("The parameter R must be an integer of length 1.")
+  if (!isTRUE(all.equal(rr, as.integer(rr)))) {
+    stop("The parameter rr must be an integer of length 1.")
   }
-  if (!is.numeric(each) | length(each) > 1) {
+  if (!is.numeric(each) || length(each) > 1) {
     stop("The parameter each must be an integer of length 1.")
   }
   if (!isTRUE(all.equal(each, as.integer(each)))) {
     stop("The parameter each must be an integer of length 1.")
   }
-  if (!is.numeric(new_seed) | length(new_seed) > 1) {
+  if (!is.numeric(new_seed) || length(new_seed) > 1) {
     stop("The parameter new_seed must be an integer of length 1.")
   }
   if (!isTRUE(all.equal(new_seed, as.integer(new_seed)))) {
     stop("The parameter new_seed must be an integer of length 1.")
   }
-  if (confid <= 0 | confid > 1) {
+  if (confid <= 0 || confid > 1) {
     stop("Please specify confid as (0, 1]")
   }
-  if (!(use_EMA %in% c("yes", "no", "ignore"))) {
-    stop("Please specify use_EMA either as \"yes\" or \"no\" or \"ignore\".")
+  if (!(use_ema %in% c("yes", "no", "ignore"))) {
+    stop("Please specify use_ema either as \"yes\" or \"no\" or \"ignore\".")
   }
-  if (!is.numeric(bounds) | length(bounds) != 2) {
-    stop("The paramter bounds must be a numeric vector of length 2.")
+  if (!is.numeric(bounds) || length(bounds) != 2) {
+    stop("The parameter bounds must be a numeric vector of length 2.")
   }
   if (bounds[1] > bounds[2]) {
     stop("Please specify bounds in the form c(lower limit, upper limit).")
   }
-  if (bounds[1] < 0 | bounds[2] > 100) {
+  if (bounds[1] < 0 || bounds[2] > 100) {
     stop("Please specify bounds in the range [0, 100].")
+  }
+  if (!is.numeric(nsf) && any(!is.na(nsf))) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (any(nsf < 0)) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (length(nsf) != length(bounds)) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (!isTRUE(all.equal(nsf, as.integer(nsf)))) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
   }
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -231,11 +252,11 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
   #       three numbers.
   # Note that together with the data adjustment the b1 vector must be reset.
 
-  if (2 * each > nrow(data) | sum(b1) != sum(!b1)) {
-    warning("The two groups to be compared do not have the same number of ",
-            "observations. Thus, the number of rows is adjusted according ",
-            "to the largest common value between the parameter each and ",
-            "the number of observations per group.")
+  if (2 * each > nrow(data) || sum(b1) != sum(!b1)) {
+    warning("The two groups to be compared do not have the same number of\n",
+            "  observations. Thus, the number of rows is adjusted according\n",
+            "  to the largest common value between the parameter each and\n",
+            "  the number of observations per group.")
 
     data <- balance_observations(data = data, groups = b1, n_obs = each)
     b1 <- make_grouping(data = data, grouping = grouping)
@@ -244,16 +265,16 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
   # <-><-><-><->
   # Determination of dissolution profile ranges to be compared
   ok <- get_profile_portion(data = data, tcol = tcol, groups = b1,
-                            use_EMA = use_EMA, bounds = bounds)
+                            use_ema = use_ema, bounds = bounds, nsf = nsf)
   time_points <- time_points[ok]
 
-  if (use_EMA == "yes" & sum(ok) < 3) {
-    stop("According to EMA the profiles must comprise a minimum of 3 time ",
-         "points. The actual profiles comprise ", sum(ok), " points only.")
+  if (use_ema == "yes" && sum(ok) < 3) {
+    stop("According to EMA the profiles must comprise a minimum of 3 time\n",
+         "  points. The actual profiles comprise ", sum(ok), " points only.")
   }
   if (sum(ok) < 3) {
-    warning("The profiles should comprise a minimum of 3 time points. ",
-            "The actual profiles comprise ", sum(ok), " points only.")
+    warning("The profiles should comprise a minimum of 3 time points.\n",
+            "  The actual profiles comprise ", sum(ok), " points only.")
   }
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -261,14 +282,14 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
 
   set.seed(new_seed)
   switch(rand_mode, "complete" = {
-    t_boot <- boot(data = data, statistic = get_f2, R = R,
+    t_boot <- boot(data = data, statistic = get_f2, R = rr,
                    strata = data[, grouping], grouping = grouping,
                    tcol = tcol[ok], ...)
   }, "individual" = {
     mle <- vector(mode = "list", length = 2)
     mle[[1]] <- nrow(data) / 2
     mle[[2]] <- tcol[ok]
-    t_boot <- boot(data = data, statistic = get_f2, R = R,
+    t_boot <- boot(data = data, statistic = get_f2, R = rr,
                    sim = "parametric", ran.gen = rand_indiv_points,
                    mle = mle, grouping = grouping, tcol = tcol[ok],
                    ins = seq_along(b1), ...)
@@ -287,14 +308,14 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
   a <- (sum((jack$theta.jack - jack$loo.values)^3)) /
     (sum(b1) / 2 *
        sum((jack$theta.jack - jack$loo.values)^2)^(3 / 2))
-  z0 <- qnorm(sum(t_boot$t < t_boot$t0) / R)
+  z0 <- qnorm(sum(t_boot$t < t_boot$t0) / rr)
 
-  BCa_LL <- pnorm(z0 + (z0 + qnorm((1 - confid) / 2)) /
+  bca_ll <- pnorm(z0 + (z0 + qnorm((1 - confid) / 2)) /
                     (1 - a * (z0 + qnorm((1 - confid) / 2))))
-  BCa_UL <- pnorm(z0 + (z0 + qnorm(1 - (1 - confid) / 2)) /
+  bca_ul <- pnorm(z0 + (z0 + qnorm(1 - (1 - confid) / 2)) /
                     (1 - a * (z0 + qnorm(1 - (1 - confid) / 2))))
-  ShahBCa_CI <- as.numeric(c(quantile(t_boot$t, BCa_LL),
-                             quantile(t_boot$t, BCa_UL)))
+  shah_bca_ci <- as.numeric(c(quantile(t_boot$t, bca_ll),
+                             quantile(t_boot$t, bca_ul)))
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Compilation of results
@@ -304,7 +325,7 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
                  L = jack$loo.values,
                  CI = cis,
                  BCa_CI = as.numeric(cis$bca[4:5]),
-                 ShahBCa_CI = ShahBCa_CI),
+                 Shah_BCa_CI = shah_bca_ci),
             class = "bootstrap_f2")
 }
 
@@ -348,6 +369,7 @@ bootstrap_f2 <- function(data, tcol, grouping, rand_mode = "complete",
 #'   \code{\link[boot]{boot.ci}}.
 #'
 #' @keywords internal
+#' @noRd
 
 get_jackknife_values <- function(grouping, stat_fun, data, ...) {
   if (!is.data.frame(data)) {
@@ -362,9 +384,10 @@ get_jackknife_values <- function(grouping, stat_fun, data, ...) {
   n <- nrow(data) / 2
 
   l_index <- lapply(1:n, function(x) (1:(2 * n))[-c(x, (x + n))])
-  u <- vapply(l_index, function(x)
-    stat_fun(data = data, ins = x, grouping = grouping, ...),
-    numeric(1))
+  u <- vapply(l_index, function(x) {
+    stat_fun(data = data, ins = x, grouping = grouping, ...)
+  },
+  numeric(1))
 
   theta_hat <- stat_fun(data = data, ins = 1:(2 * n), grouping = grouping, ...)
   pseudo_values <- n * theta_hat - (n - 1) * u

@@ -7,39 +7,41 @@
 #' test for equivalence} of dissolution data as proposed by Hoffelder (2016).
 #'
 #' @param data A data frame with the dissolution profile data in wide format.
-#' @param tcol A vector of indices specifying the columns in \code{data} that
-#'   contain the \% release values. The length of \code{tcol} must be three or
-#'   longer.
-#' @param grouping A character string specifying the column in \code{data} that
-#'   contains the group names (i.e. a factorial variable, e.g., for the
+#' @param tcol A vector of indices that specifies the columns in \code{data}
+#'   which contain the \% release values. The length of \code{tcol} must be
+#'   two or longer.
+#' @param grouping A character string that specifies the column in \code{data}
+#'   that contains the group names (i.e. a factorial variable, e.g., for the
 #'   differentiation of batches or formulations of a drug product).
-#' @param fit_n_obs A logical value specifying if the number of rows per level
-#'   in the column specified by the \code{grouping} parameter should be adjusted
-#'   to be equal given that they are not equal. The default is \code{FALSE}
-#'   because each group should have the same number of observations. If
-#'   \code{fit_n_obs} is \code{TRUE}, redundant observations from the level
-#'   with more observations are dropped, i.e. only the observations \code{1}
-#'   to the number of observations of the level with the fewer observations
-#'   will be used for the comparison of the two groups.
-#' @param mtad A numeric value specifying the \dQuote{maximum tolerable average
-#'   difference} (MTAD) of the profiles of two formulations at all time points
-#'   (in \%). The default value is \code{10}. It determines the size of the
-#'   similarity limit \eqn{\bm{d}_g}{d_g}.
-#' @param signif A positive numeric value between \code{0} and \code{1}
-#'   specifying the significance level for the calculation of the
+#' @param fit_n_obs A logical value that indicates whether the number of rows
+#'   per level in the column specified by the \code{grouping} parameter should
+#'   be adjusted to be equal given that they are not equal. The default is
+#'   \code{FALSE} because for this type of analysis each group should have the
+#'   same number of observations. If \code{fit_n_obs} is \code{TRUE}, redundant
+#'   observations from the level with more observations are dropped, i.e. only
+#'   the observations \code{1:n} (n: number of observations of the level with
+#'   the fewer observations) will be used for the comparison of the two groups.
+#' @param mtad A numeric value that specifies the \dQuote{maximum tolerable
+#'   average difference} (MTAD) of the profiles of two formulations at all time
+#'   points (in \%). The default value is \code{10}. It determines the size of
+#'   the similarity limit \eqn{\bm{d}_g}{d_g} (see the details section for more
+#'   information).
+#' @param signif A positive numeric value between \code{0} and \code{1} that
+#'   specifies the significance level for the calculation of the
 #'   \dQuote{Confidence Region} (CR). The coverage of CR is
 #'   \eqn{(1 - signif) 100}\%. The default value is \code{0.05}.
-#' @param max_trial A positive integer specifying the maximum number of
+#' @param max_trial A positive integer that specifies the maximum number of
 #'   Newton-Raphson search rounds to be performed.
-#' @param bounds A numeric vector of the form \code{c(lower, upper)} specifying
-#'   the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-#'   drug release. The default is \code{c(1, 85)}. Mean \% release values of
-#'   any of the two groups being compared that are smaller than or equal to the
-#'   lower bound are ignored and only the first mean \% release value that is
-#'   greater than or equal to the upper bound is included while all the
+#' @param bounds A numeric vector of the form \code{c(lower, upper)} that
+#'   specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+#'   the \% drug release. The default is \code{c(1, 85)}. Mean \% release values
+#'   of any of the two groups being compared that are smaller than or equal to
+#'   the lower bound are ignored and only the first mean \% release value that
+#'   is greater than or equal to the upper bound is included while all the
 #'   subsequent values are ignored.
-#' @param tol A non-negative numeric specifying the accepted minimal
+#' @param tol A non-negative numeric that specifies the accepted minimal
 #'   difference between two consecutive search rounds.
+#' @inheritParams bootstrap_f2
 #'
 #' @details The function \code{mimcr()} assesses the equivalence of highly
 #' variable dissolution profiles by aid of a \dQuote{Model-Independent
@@ -67,8 +69,8 @@
 #' \enumerate{
 #' \item Establish a similarity limit in terms of \dQuote{Multivariate
 #'   Statistical Distance} (MSD) based on inter-batch differences in \% drug
-#'   release from reference (standard approved) formulations, i.e. the so-
-#'   called \dQuote{Equivalence Margin} (EM).
+#'   release from reference (standard approved) formulations, i.e. the
+#'   so-called \dQuote{Equivalence Margin} (EM).
 #' \item Calculate the MSD between test and reference mean dissolutions.
 #' \item Estimate the 90\% confidence interval (CI) of the true MSD as
 #'   determined in step 2.
@@ -86,16 +88,21 @@
 #' distance, is used to measure the difference between two multivariate means.
 #' This distance measure is calculated as
 #'
-#' \deqn{D_M = \sqrt{ \left( \bm{x_T} - \bm{x_R} \right)^{\top}
-#'   \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right)} ,}{%
+#' \deqn{D_M = \sqrt{ \left( \bm{x}_T - \bm{x}_R \right)^{\top}
+#'   \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right)} ,}{%
 #'   D_M = sqrt((x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R)) ,}
 #'
-#' where \eqn{\bm{S}_{pooled} = \frac{\left( \bm{S}_T + \bm{S}_R \right)}{2}}{%
-#' S_{pooled} = (S_T + S_R) / 2} is the sample variance-covariance matrix
-#' pooled across the batches, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R} are
-#' the vectors of the sample means for the test (\eqn{T}) and reference
+#' where \eqn{\bm{S}_{pooled}} is the sample variance-covariance matrix pooled
+#' across the comparative groups, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R}
+#' are the vectors of the sample means for the test (\eqn{T}) and reference
 #' (\eqn{R}) profiles, and \eqn{\bm{S}_T}{S_T} and \eqn{\bm{S}_R}{x_R} are the
-#' variance-covariance matrices of the test and reference profiles.
+#' variance-covariance matrices of the test and reference profiles. The pooled
+#' variance-covariance matrix \eqn{\bm{S}_{pooled}}{S_{pooled}} is calculated
+#' by
+#'
+#' \deqn{\bm{S}_{pooled} = \frac{(n_R - 1) \bm{S}_R + (n_T - 1) \bm{S}_T}{%
+#'   n_R + n_T - 2} .}{S_{pooled} = ((n_R - 1) S_R + (n_T - 1) S_T) /
+#'   (n_R + n_T - 2) .}
 #'
 #' In order to determine the similarity limits in terms of the MSD, i.e. the
 #' Mahalanobis distance between the two multivariate means of the dissolution
@@ -110,27 +117,31 @@
 #' e.g., \eqn{15}\%, for the maximum tolerable difference at all time points,
 #' and \eqn{p} is the number of sampling points. By assuming that the data
 #' follow a multivariate normal distribution, the 90\% confidence region
-#' (\eqn{CR}) bounds for the true difference between the mean vectors,
+#' (\eqn{\textit{CR}}) bounds for the true difference between the mean vectors,
 #' \eqn{\bm{\mu}_T - \bm{\mu}_R}{\mu_T - \mu_R}, can be computed for the
 #' resultant vector \eqn{\bm{\mu}}{\mu} to satisfy the following condition:
 #'
-#' \deqn{\bm{CR} = K \left( \bm{\mu} - \left( \bm{x_T} - \bm{x_R} \right)
-#'   \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} - \left( \bm{x_T} -
-#'   \bm{x_R} \right) \right) \leq F_{p, n_T + n_R - p - 1, 0.9} ,}{%
+#' \deqn{\bm{\textit{CR}} = K \left( \bm{\mu} - \left( \bm{x}_T -
+#'   \bm{x}_R \right) \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} -
+#'   \left( \bm{x}_T - \bm{x}_R \right) \right) \leq
+#'   F_{p, n_T + n_R - p - 1, 0.9} ,}{%
 #'   CR = sqrt((\mu - (x_T - x_R))^{\top} S_{pooled}^{-1} (\mu - (x_T - x_R)))
 #'   \leq F_{p, n_T + n_R - p - 1, 0.9} ,}
 #'
 #' where \eqn{K} is the scaling factor that is calculated as
 #'
-#' \deqn{K = \frac{n_T n_R}{n_T + n_R} \cdot \frac{n_T + n_R - p - 1}{
-#'   \left( n_T + n_R - 2 \right) \cdot p} ,}{%
-#'   (n_T n_R) / (n_T + n_R) * (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
+#' \deqn{K = \frac{n_T n_R}{n_T + n_R} \; \frac{n_T + n_R - p - 1}{
+#'   \left( n_T + n_R - 2 \right) p} ,}{%
+#'   (n_T n_R) / (n_T + n_R) (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
 #'
 #' and \eqn{F_{p, n_T + n_R - p - 1, 0.9}} is the \eqn{90^{th}} percentile of
 #' the \eqn{F} distribution with degrees of freedom \eqn{p} and
-#' \eqn{n_T + n_R - p - 1}. It is obvious that \eqn{(n_T + n_R)} must be greater
-#' than \eqn{(p + 1)}. The formula for \eqn{CR} gives a \eqn{p}-variate 90\%
-#' confidence region for the possible true differences. \cr
+#' \eqn{n_T + n_R - p - 1}, where \eqn{n_T} and \eqn{n_R} are the number of
+#' observations of the reference and the test group, respectively, and \eqn{p}
+#' is the number of sampling or time points, as mentioned already. It is
+#' obvious that \eqn{(n_T + n_R)} must be greater than \eqn{(p + 1)}. The
+#' formula for \eqn{\textit{CR}} gives a \eqn{p}-variate 90\% confidence region
+#' for the possible true differences. \cr
 #'
 #' @section T2 test for equivalence:
 #' Based on the distance measure for profile comparison that was suggested by
@@ -143,10 +154,10 @@
 #' than the pre-specified significance level \eqn{\alpha}, i.e. if
 #' \eqn{p < \alpha}. The \eqn{p} value is calculated by aid of the formula
 #'
-#' \deqn{p = F_{p, n_T + n_R - p - 1, ncp, \alpha}
+#' \deqn{p = F_{p, n_T + n_R - p - 1, ncp, \alpha} \;
 #'   \frac{n_T + n_R - p - 1}{(n_T + n_R - 2) p} T^2 ,}{%
 #'   p = F_{p, n_T + n_R - p - 1, ncp, \alpha}
-#'   (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) T^2 ,}
+#'   (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) \; T^2 ,}
 #'
 #' where \eqn{\alpha} is the significance level and \eqn{ncp} is the so-called
 #' \dQuote{\emph{non-centrality parameter}} that is calculated by
@@ -154,21 +165,23 @@
 #' \deqn{\frac{n_T n_R}{n_T + n_R} \left( D_M^{max} \right)^2 .}{%
 #'   (n_T n_R) / (n_T + n_R) (D_M^{max})^2 .}
 #'
-#' The test statistic being used is Hotelling's \eqn{T^2} that is given as
+#' The test statistic being used is Hotelling's two-sample \eqn{T^2} test that
+#' is given as
 #'
-#' \deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x_T} - \bm{x_R}
-#'   \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right) .}{%
-#'   (n_T n_R) / (n_T + n_R) * (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) .}
+#' \deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x}_T - \bm{x}_R
+#'   \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) .}{%
+#'   (n_T n_R) / (n_T + n_R) (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) .}
 #'
-#' As mentioned elsewhere, \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p}
-#' vector with all \eqn{p} elements equal to an empirically defined limit
-#' \eqn{d_g}. Thus, the components of the vector \eqn{\bm{d}_g}{d_g} can be
-#' interpreted as upper bound for a kind of \dQuote{\emph{average}} allowed
-#' difference between test and reference profiles, the \dQuote{\emph{global
-#' similarity limit}}. Since the EMA requires that \dQuote{similarity acceptance
-#' limits should be pre-defined and justified and not be greater than a 10\%
-#' difference}, it is recommended to use 10\%, not 15\% as proposed by Tsong
-#' et al. (1996), for the maximum tolerable difference at all time points.
+#' As mentioned in paragraph \dQuote{Similarity limits in terms of MSD},
+#' \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p} vector with all \eqn{p}
+#' elements equal to an empirically defined limit \eqn{d_g}. Thus, the
+#' components of the vector \eqn{\bm{d}_g}{d_g} can be interpreted as upper
+#' bound for a kind of \dQuote{\emph{average}} allowed difference between test
+#' and reference profiles, the \dQuote{\emph{global similarity limit}}.
+#' Since the EMA requires that \dQuote{similarity acceptance limits should be
+#' pre-defined and justified and not be greater than a 10\% difference}, it is
+#' recommended to use 10\%, not 15\% as proposed by Tsong et al. (1996), for
+#' the maximum tolerable difference at all time points.
 #'
 #' @return An object of class \sQuote{\code{mimcr}} is returned, containing
 #' the following list elements:
@@ -177,12 +190,12 @@
 #' \item{NR.CI}{List with results from the Newton-Raphson (NR) search.}
 #' \item{Profile.TP}{A named numeric vector of the columns in \code{data}
 #'   specified by \code{tcol}. Given that the column names contain extractable
-#'   numeric information, e.g., specifying the testing time points of the
-#'   dissolution profile, it contains the corresponding values. Elements
-#'   where no numeric information could be extracted are \code{NA}.}
+#'   numeric information, e.g., the testing time points of the dissolution
+#'   profile, it contains the corresponding numeric values. Elements where no
+#'   numeric information could be extracted are \code{NA}.}
 #'
 #' The \code{Parameters} element contains the following information:
-#' \item{DM}{The Mahalanobis distance of the samples.}
+#' \item{dm}{The Mahalanobis distance of the samples.}
 #' \item{df1}{Degrees of freedom (number of variables or time points).}
 #' \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
 #' \item{alpha}{The provided significance level.}
@@ -207,8 +220,14 @@
 #' \item{Obs.U}{Observed upper limit (Tsong's procedure).}
 #'
 #' The \code{NR.CI} element contains the following information:
-#' \item{CI}{A matrix of the points on the \eqn{CR} bounds for each time point.}
-#' \item{converged}{A logical specifying if the NR algorithm converged or not.}
+#' \item{CI}{A matrix of the points on the \eqn{\textit{CR}} bounds for each
+#'   time point.}
+#' \item{converged}{A logical that indicates whether the NR algorithm converged
+#'   or not.}
+#' \item{points.on.crb}{A logical that indicates whether the points that were
+#'   found by the NR algorithm sit on the confidence region boundary or not,
+#'   i.e. whether the \eqn{T^2} statistic of the found data points, in relation
+#'   to the mean difference, is equal to the critical \eqn{F} value.}
 #' \item{n.trial}{Number of trials until convergence.}
 #' \item{max.trial}{Maximal number of trials.}
 #' \item{Warning}{A warning message, if applicable, or otherwise NULL.}
@@ -227,9 +246,8 @@
 #'
 #' European Medicines Agency (EMA), Committee for Medicinal Products for
 #' Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-#' CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-#' \url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-#' guideline-investigation-bioequivalence-rev1_en.pdf}
+#' \href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+#' CPMP/EWP/QWP/1401/98 Rev. 1}.
 #'
 #' Tsong, Y., Hammerstrom, T., Sathe, P.M., and Shah, V.P. Statistical
 #' assessment of mean differences between two dissolution data sets.
@@ -251,8 +269,8 @@
 #' 2016; \strong{78}(4): 587-592.\cr
 #' \url{https://www.ecv.de/suse_item.php?suseId=Z|pi|8430}
 #'
-#' @seealso \code{\link{gep_by_nera}}, \code{\link{bootstrap_f2}},
-#'   \code{\link{mztia}}.
+#' @seealso \code{\link{gep_by_nera}}, \code{\link{get_T2_two}},
+#' \code{\link{get_T2_one}}, \code{\link{bootstrap_f2}}, \code{\link{mztia}}.
 #'
 #' @example man/examples/examples_mimcr.R
 #'
@@ -263,17 +281,17 @@
 
 mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
                   signif = 0.05, max_trial = 50, bounds = c(1, 85),
-                  tol = 1e-9) {
+                  nsf = c(1, 2), tol = 1e-9) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
-  if (!is.numeric(tcol) | length(tcol) < 2) {
+  if (!is.numeric(tcol) || length(tcol) < 2) {
     stop("The parameter tcol must be an integer vector of at least length 2.")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer vector.")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (sum(grepl("\\d", colnames(data[, tcol]))) < length(tcol)) {
@@ -282,6 +300,10 @@ mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
   }
   if (sum(vapply(data[, tcol], is.numeric, logical(1))) != length(tcol)) {
     stop("Some columns specified by tcol are not numeric.")
+  }
+  if (any(is.na(data[, tcol]))) {
+    stop("Note that data contains NA/NaN values.\n",
+         "  Please consider imputing missing values.")
   }
   if (!is.character(grouping)) {
     stop("The parameter grouping must be string.")
@@ -292,16 +314,16 @@ mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
   if (!is.factor(data[, grouping])) {
     stop("The grouping variable's column in data must be a factor.")
   }
-  if (!is.logical(fit_n_obs) | length(fit_n_obs) != 1) {
+  if (!is.logical(fit_n_obs) || length(fit_n_obs) != 1) {
     stop("The parameter fit_n_obs must be a logical of length 1.")
   }
-  if (mtad <= 0 | mtad > 50) {
+  if (mtad <= 0 || mtad > 50) {
     stop("Please specify mtad as (0, 50]")
   }
-  if (signif <= 0 | signif > 1) {
+  if (signif <= 0 || signif > 1) {
     stop("Please specify signif as (0, 1]")
   }
-  if (!is.numeric(max_trial) | length(max_trial) > 1) {
+  if (!is.numeric(max_trial) || length(max_trial) > 1) {
     stop("The parameter max_trial must be a positive integer of length 1.")
   }
   if (max_trial != as.integer(max_trial)) {
@@ -310,16 +332,28 @@ mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
   if (max_trial < 0) {
     stop("The parameter max_trial must be a positive integer of length 1.")
   }
-  if (!is.numeric(bounds) | length(bounds) != 2) {
-    stop("The paramter bounds must be a numeric vector of length 2.")
+  if (!is.numeric(bounds) || length(bounds) != 2) {
+    stop("The parameter bounds must be a numeric vector of length 2.")
   }
   if (bounds[1] > bounds[2]) {
     stop("Please specify bounds in the form c(lower limit, upper limit).")
   }
-  if (bounds[1] < 0 | bounds[2] > 100) {
+  if (bounds[1] < 0 || bounds[2] > 100) {
     stop("Please specify bounds in the range [0, 100].")
   }
-  if (!is.numeric(tol) | length(tol) > 1) {
+  if (!is.numeric(nsf) && any(!is.na(nsf))) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (any(nsf < 0)) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (length(nsf) != length(bounds)) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (!isTRUE(all.equal(nsf, as.integer(nsf)))) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (!is.numeric(tol) || length(tol) > 1) {
     stop("The parameter tol must be a non-negative numeric value of length 1.")
   }
   if (tol < 0) {
@@ -374,11 +408,11 @@ mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
   #   less than 10% from the second to the last time point.
 
   ok <- get_profile_portion(data = data, tcol = tcol, groups = b1,
-                            use_EMA = "no", bounds = bounds)
+                            use_ema = "no", bounds = bounds, nsf = nsf)
 
   if (sum(ok) < 3) {
-    warning("The profiles should comprise a minimum of 3 time points. ",
-            "The actual profiles comprise ", sum(ok), " points only.")
+    warning("The profiles should comprise a minimum of 3 time points.\n",
+            "  The actual profiles comprise ", sum(ok), " points only.")
   }
 
   # <-><-><->
@@ -389,113 +423,119 @@ mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
   # Determination of MSD and similarity assessment
 
   # Hotelling's T2 statistics
-  l_hs <- get_hotellings(m1 = as.matrix(data[b1, tcol[ok]]),
-                         m2 = as.matrix(data[!b1, tcol[ok]]),
-                         signif = signif)
+  l_hs <- get_T2_two(m1 = as.matrix(data[b1, tcol[ok]]),
+                     m2 = as.matrix(data[!b1, tcol[ok]]),
+                     signif = signif)
 
   # Similarity limit and critical F values
   t_sl <- get_sim_lim(mtad, l_hs)
 
   # Similarity conclusion based on Hoffelder's p value
   if (t_sl["p.F.Hoffelder"] < signif) {
-    conclusion_Hoffelder <- "Similar"
+    conclusion_hoffelder <- "Similar"
   } else {
-    conclusion_Hoffelder <- "Dissimilar"
+    conclusion_hoffelder <- "Dissimilar"
   }
 
-  # Compilation of results
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Determination of points on the confidence region boundary (CRB) according
+  # to Tsong 1996
+
+  l_nera <- try_get_model(
+    gep_by_nera(n_p = as.numeric(l_hs[["Parameters"]]["df1"]),
+                kk = as.numeric(l_hs[["Parameters"]]["K"]),
+                mean_diff = l_hs[["means"]][["mean.diff"]],
+                m_vc = l_hs[["S.pool"]],
+                ff_crit = as.numeric(l_hs[["Parameters"]]["F.crit"]),
+                y = rep(1, times = l_hs[["Parameters"]]["df1"] + 1),
+                max_trial = max_trial,
+                tol = tol))
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Check if the estimation by gep_by_nera() was successful and if the points
+  # that were found sit on the CRB
+
+  # Extend t_res vector for the reporting of the results
   t_res <- c(t_sl, NA, NA)
   names(t_res)[(length(t_res) - 1):length(t_res)] <- c("Obs.L", "Obs.U")
 
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Determination of points on the confidence region (CR) according
-  # to Tsong 1996 and checking if these points are within the global
-  # similarity limit D_glob
-
-  tmp <- rep(1, times = t_sl["df1"] + 1)
-  tmp <- try_get_model(
-    gep_by_nera(n_p = as.numeric(t_sl["df1"]), K = as.numeric(t_sl["K"]),
-                mean_diff = l_hs[["means"]][["mean.diff"]],
-                S_pool = l_hs[["S.pool"]], F_crit = as.numeric(t_sl["F.crit"]),
-                y = tmp, max_trial = max_trial, tol = tol))
-
-  if (!is.null(tmp[["Error"]]) | !is.null(tmp[["Warning"]])) {
-      CI_NR <- cbind(LCL = rep(NA, times = t_sl["df1"]),
+  if (!is.null(l_nera[["Error"]]) || !is.null(l_nera[["Warning"]])) {
+      nr_ci <- cbind(LCL = rep(NA, times = t_sl["df1"]),
                      UCL = rep(NA, times = t_sl["df1"]))
-      rownames(CI_NR) <- colnames(data[, tcol[ok]])
+      rownames(nr_ci) <- colnames(data[, tcol[ok]])
 
       # Similarity conclusion based on Tsong's D_crit
-      conclusion_Tsong <- "Dissimilar"
+      conclusion_tsong <- NA
     } else {
-      y_b1 <- tmp[["Model"]][["points"]]
+      # If the found points are not located on the CRB
+      l_nera[["Model"]] <- check_point_location(lpt = l_nera[["Model"]],
+                                                lhs = l_hs)
 
-      # The points at the ellipse's opposite side are obtained by subtraction.
-      y_b2 <- l_hs[["means"]][["mean.diff"]] +
-        (l_hs[["means"]][["mean.diff"]] - y_b1[1:t_sl["df1"]])
-
-      # At this point, it has to be checked if the T2 statistic of the found
-      # data points, compared with the mean difference, is equal to the critical
-      # F value. If not so, the found points are not located on the confidence
-      # region boundary.
-
-      kdvd <-
-        t_sl["K"] * t(y_b1[1:t_sl["df1"]] - l_hs[["means"]][["mean.diff"]]) %*%
-        solve(l_hs[["S.pool"]]) %*%
-        (y_b1[1:t_sl["df1"]] - l_hs[["means"]][["mean.diff"]])
-
-      if (round(kdvd, tol) != round(t_sl["F.crit"], tol)) {
-        CI_NR <- cbind(LCL = rep(NA, times = t_sl["df1"]),
+      if (!l_nera[["Model"]][["points.on.crb"]]) {
+        nr_ci <- cbind(LCL = rep(NA, times = t_sl["df1"]),
                        UCL = rep(NA, times = t_sl["df1"]))
-        rownames(CI_NR) <- colnames(data[, tcol[ok]])
+        rownames(nr_ci) <- colnames(data[, tcol[ok]])
+
+        warning("The points found by the Newton-Raphson search are not\n",
+                "  located on the confidence region boundary (CRB).")
 
         # Similarity conclusion based on Tsong's D_crit
-        conclusion_Tsong <- "Dissimilar"
-
-        warning("The points found by the Newton-Raphson search are not ",
-                "located on the confidence region boundary.")
+        conclusion_tsong <- NA
       } else {
         # If it has been confirmed that the found data points are located on
-        # the confidence boundary, the corresponding Mahalanobis distances are
-        # calculated. Then it is checked if the longer distance is smaller than
-        # the global similarity limit D_crit.
+        # the CRB, the corresponding Mahalanobis distances are calculated.
+        # Then it is checked if the longer distance is smaller than the global
+        # similarity limit.
+        y_b1 <- l_nera[["Model"]][["points"]]
+        md_1 <- sqrt(t(y_b1[1:t_sl["df1"]]) %*% solve(l_hs[["S.pool"]]) %*%
+                       y_b1[1:t_sl["df1"]])
 
-        MD1 <- sqrt(t(y_b1[1:t_sl["df1"]]) %*% solve(l_hs[["S.pool"]]) %*%
-                      y_b1[1:t_sl["df1"]])
-        MD2 <- sqrt(t(y_b2[1:t_sl["df1"]]) %*% solve(l_hs[["S.pool"]]) %*%
+        # The points at the ellipse's opposite side are obtained by subtraction.
+        y_b2 <- l_hs[["means"]][["mean.diff"]] +
+          (l_hs[["means"]][["mean.diff"]] - y_b1[1:t_sl["df1"]])
+        md_2 <- sqrt(t(y_b2[1:t_sl["df1"]]) %*% solve(l_hs[["S.pool"]]) %*%
                       y_b2[1:t_sl["df1"]])
 
-        t_res[length(t_res) - 1] <- min(MD1, MD2)
-        t_res[length(t_res)] <- max(MD1, MD2)
+        t_res[length(t_res) - 1] <- min(md_1, md_2)
+        t_res[length(t_res)] <- max(md_1, md_2)
 
-        # Similarity conclusion based on Tsong's D_crit
+        # Similarity conclusion based on Tsong's similarity limit
         if (t_res[length(t_res)] < t_sl["Sim.Limit"]) {
-          conclusion_Tsong <- "Similar"
+          conclusion_tsong <- "Similar"
         } else {
-          conclusion_Tsong <- "Dissimilar"
+          conclusion_tsong <- "Dissimilar"
         }
 
-        if (MD1 < MD2) {
-          CI_NR <- cbind(LCL = y_b1[1:t_sl["df1"]], UCL = y_b2[1:t_sl["df1"]])
-          rownames(CI_NR) <- colnames(data[, tcol[ok]])
+        if (md_1 < md_2) {
+          nr_ci <- cbind(LCL = y_b1[1:t_sl["df1"]], UCL = y_b2[1:t_sl["df1"]])
+          rownames(nr_ci) <- colnames(data[, tcol[ok]])
         } else {
-          CI_NR <- cbind(LCL = y_b2[1:t_sl["df1"]], UCL = y_b1[1:t_sl["df1"]])
-          rownames(CI_NR) <- colnames(data[, tcol[ok]])
+          nr_ci <- cbind(LCL = y_b2[1:t_sl["df1"]], UCL = y_b1[1:t_sl["df1"]])
+          rownames(nr_ci) <- colnames(data[, tcol[ok]])
         }
       }
     }
 
-  l_NR <- vector(mode = "list", length = 6)
-  names(l_NR) <-
-    c("CI", "converged", "n.trial", "max.trial", "Warning", "Error")
+  l_nr <- list(CI = NA,
+               converged = NA,
+               points.on.crb = NA,
+               n.trial = NA,
+               max.trial = max_trial,
+               Warning = NA,
+               Error = NA)
 
-  l_NR[[1]] <- CI_NR
-  l_NR[[2]] <- tmp[["Model"]]$converged
-  l_NR[[3]] <- tmp[["Model"]]$n.trial
-  l_NR[[4]] <- tmp[["Model"]]$max.trial
-  if (!is.null(tmp[["Warning"]])) l_NR[[5]] <- tmp[["Warning"]]
-  if (!is.null(tmp[["Error"]])) l_NR[[6]] <- tmp[["Error"]]
+  if (!is.null(l_nera[["Error"]])) {
+    l_nr[["CI"]] <- nr_ci
+    l_nr[["Error"]] <- l_nera[["Error"]]
+  } else {
+    l_nr[["CI"]] <- nr_ci
+    l_nr[["converged"]] <- l_nera[["Model"]][["converged"]]
+    l_nr[["points.on.crb"]] <- l_nera[["Model"]][["points.on.crb"]]
+    l_nr[["n.trial"]] <- l_nera[["Model"]][["n.trial"]]
+    if (!is.null(l_nera[["Warning"]])) l_nr[["Warning"]] <- l_nera[["Warning"]]
+  }
 
-  conclusions <- c(conclusion_Tsong, conclusion_Hoffelder)
+  conclusions <- c(conclusion_tsong, conclusion_hoffelder)
   names(conclusions) <- c("Tsong", "Hoffelder")
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -503,7 +543,7 @@ mimcr <- function(data, tcol, grouping, fit_n_obs = FALSE, mtad = 10,
 
   structure(list(Similarity = conclusions,
                  Parameters = t_res,
-                 NR.CI = l_NR,
+                 NR.CI = l_nr,
                  Profile.TP = time_points),
             class = "mimcr")
 }

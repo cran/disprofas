@@ -13,6 +13,7 @@ test_that("balance_observations_succeeds", {
   data1 <- droplevels(sub1_dip2[sub1_dip2$batch %in% c("b0", "b1"), ])
   data2 <- droplevels(sub1_dip2[sub1_dip2$batch %in% c("b1", "b2"), ])
   data3 <- droplevels(sub2_dip2[sub2_dip2$batch %in% c("b1", "b3"), ])
+  data4 <- droplevels(sub1_dip2[sub1_dip2$batch %in% c("b2", "b1"), ])
 
   # <-><-><-><->
 
@@ -26,6 +27,9 @@ test_that("balance_observations_succeeds", {
   b1 <- data3[, "batch"] == levels(data3[, "batch"])[1]
   d_res4 <- balance_observations(data = data3, groups = b1, n_obs = 12)
   d_res5 <- balance_observations(data = data3, groups = b1, n_obs = 24)
+
+  b1 <- data2[, "batch"] == levels(data4[, "batch"])[2]
+  d_res6 <- balance_observations(data = data4, groups = b1, n_obs = 12)
 
   # <-><-><-><->
 
@@ -43,6 +47,9 @@ test_that("balance_observations_succeeds", {
 
   expect_equal(nrow(d_res5[d_res5$batch == "b1", ]), 24)
   expect_equal(nrow(d_res5[d_res5$batch == "b3", ]), 24)
+
+  expect_equal(nrow(d_res6[d_res6$batch == "b2", ]), 12)
+  expect_equal(nrow(d_res6[d_res6$batch == "b1", ]), 12)
 })
 
 test_that("balance_observations_fails", {

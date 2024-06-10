@@ -1,68 +1,111 @@
-#' Hotelling's statistics (for two independent (small) samples)
+#' Hotelling's statistics (for one (small) sample)
 #'
-#' The function \code{get_hotellings()} estimates the parameters for Hotelling's
-#' two-sample \eqn{T^2} statistic for small samples.
+#' The function \code{get_T2_one()} estimates the parameters for Hotelling's
+#' one-sample \eqn{T^2} statistic for small samples.
 #'
-#' @param m1 A matrix with the data of the reference group.
-#' @param m2 A matrix with the same dimensions as matrix \code{m1}, with the
-#'   data of the test group.
+#' @param m A matrix with the data of the reference group, e.g. a matrix
+#'   for the different model parameters (columns) of different dosage unit
+#'   (rows).
+#' @param mu A numeric vector of, e.g. the hypothetical model parameter
+#'   mean values.
 #' @param signif A positive numeric value between \code{0} and \code{1}
-#'   specifying the significance level. The default value is \code{0.05}.
+#'   that specifies the significance level. The default value is \code{0.05}.
+#' @param na_rm A logical value that indicates whether observations containing
+#'   \code{NA} (or \code{NaN}) values should be removed (\code{na_rm = TRUE})
+#'   or not (\code{na_rm = FALSE}). The default is \code{na_rm = FALSE}.
 #'
-#' @details The two-sample Hotelling's \eqn{T^2} test statistic is given by
+#' @details The one-sample Hotelling's \eqn{T^2} test statistic is given by
 #'
-#' \deqn{T^2 = \left( \bar{\bm{x}}_1 - \bar{\bm{x}}_2 \right)^{\top}
-#'   \left( \bm{S}_p \left( \frac{1}{n_1} + \frac{1}{n_2} \right) \right)^{-1}
-#'   \left( \bar{\bm{x}}_1 - \bar{\bm{x}}_2 \right) .}{%
-#'   T^2 = (x.bar_1 - x.bar_2)^{\top} (S_p (1 / n_1 + 1 / n_2))^{-1}
-#'   (x.bar_1 - x.bar_2) .}
+#' \deqn{T^2 = n \left( \bar{\bm{x}} - \bm{\mu}_0 \right)^{\top}
+#'       \bm{S}^{-1} \left( \bar{\bm{x}} - \bm{\mu}_0 \right) .}{%
+#'       T^2 = n (x.bar - \mu_0)^{\top} S^{-1} (x.bar - \mu_0) .}
 #'
-#' For large samples, this test statistic will be approximately chi-square
-#' distributed with \eqn{p} degrees of freedom. However, this approximation
-#' does not take into account the variation due to the variance-covariance
-#' matrix estimation. Therefore, Hotelling's \eqn{T^2} statistic
-#' is transformed into an \eqn{F}-statistic using the expression
+#' where \eqn{\bar{\bm{x}}}{x.bar} is the vector of the sample means of the
+#' sample group, e.g. the vector of the average dissolution per time point or
+#' of the average model parameters, \eqn{n} is the numbers of observations of
+#' the sample group (i.e. the number of rows in matrix \code{m} handed over
+#' to the \code{get_T2_one()} function, and \eqn{\bm{S}} is variance-covariance
+#' matrix. The matrix \eqn{\bm{S}^{-1}}{S^{-1}} is the inverted
+#' variance-covariance matrix. The term
 #'
-#' \deqn{F = \frac{n_1 + n_2 - p - 1}{(n_1 + n_2 - 2) p} T^2 ,}{%
-#'   F = (n_1 + n_2 - p - 1) / ((n_1 + n_2 - 2) p) T^2 ,}
+#' \deqn{D_M = \sqrt{ \left( \bar{\bm{x}} - \bm{\mu}_0 \right)^{\top}
+#'       \bm{S}^{-1} \left( \bar{\bm{x}} - \bm{\mu}_0 \right) }}{%
+#'   D_M = sqrt((x.bar - \mu_0)^{\top} S^{-1} (x.bar - \mu_0))}
 #'
-#' where \eqn{n_1} and \eqn{n_2} are the sample sizes of the two samples being
-#' compared and \eqn{p} is the number of variables.
+#' is the Mahalanobis distance measuring the difference between the sample mean
+#' vector and the vector of the hypothetical values \eqn{\bm{\mu}_0}{\mu_0}.
+#' For large samples, \eqn{T^2} is approximately chi-square distributed with
+#' \eqn{p} degrees of freedom, where \eqn{p} is the number of variables, i.e.
+#' the number of dissolution profile time points or the number of model
+#' parameters. In terms of the Mahalanobis distance, the one-sample Hotelling's
+#' \eqn{T^2} statistic can be expressed has
 #'
-#' Under the null hypothesis, \eqn{H_0: \bm{\mu}_1 = \bm{\mu}_2}{%
-#' H_0: \mu_1 = \mu_2}, this \eqn{F}-statistic will be \eqn{F}-distributed
-#' with \eqn{p} and \eqn{n_1 + n_2 - p} degrees of freedom. \eqn{H_0} is
-#' rejected at significance level \eqn{\alpha} if the \eqn{F}-value exceeds the
-#' critical value from the \eqn{F}-table evaluated at \eqn{\alpha}, i.e.
-#' \eqn{F > F_{p, n_1 + n_2 - p - 1, \alpha}}. The null hypothesis is satisfied
-#' if, and only if, the population means are identical for all variables. The
-#' alternative is that at least one pair of these means is different.
+#' \deqn{n \; D_M^2 = k \; D_M^2 .}
+#'
+#' To transform the one-sample Hotelling's \eqn{T^2} statistic into an
+#' \eqn{F}-statistic, a conversion factor is necessary, i.e.
+#'
+#' \deqn{K = k \; \frac{n - p}{(n - 1) p} .}{k (n - p) / ((n - 1) p) .}
+#'
+#' With this transformation, the following test statistic can be applied:
+#'
+#' \deqn{K \; D_M^2 \leq F_{p, n - p, \alpha} .}{%
+#'   K D_M^2 \leq F_{p, n - p, \alpha} .}
+#'
+#' Under the null hypothesis, \eqn{H_0: \bm{\mu} = \bm{\mu}_0}{%
+#' H_0: \mu = \mu_0}, this \eqn{F}-statistic is \eqn{F}-distributed with
+#' \eqn{p} and \eqn{n - p} degrees of freedom. \eqn{H_0} is rejected at a
+#' significance level of \eqn{\alpha} if the test statistic \eqn{F} exceeds
+#' the critical value from the \eqn{F}-table evaluated at \eqn{\alpha}, i.e.
+#' \eqn{F > F_{p, n - p, \alpha}}. \cr
 #'
 #' The following assumptions concerning the data are made:
 #' \itemize{
-#' \item The data from population \eqn{i} is a sample from a population with
-#'   mean vector \eqn{\mu_i}. In other words, it is assumed that there are no
-#'   sub-populations.
-#' \item The data from both populations have common variance-covariance matrix
+#' \item The data of population \eqn{x} has no sub-populations, i.e. there are
+#'   no sub-populations of \eqn{x} with different means.
+#' \item The observations are based on a common variance-covariance matrix
 #'   \eqn{\Sigma}.
-#' \item The subjects from both populations are independently sampled.
-#' \item Both populations are normally distributed.
+#' \item The observations have been independently sampled.
+#' \item The observations have been sampled from a multivariate normal
+#'   distribution.
 #' }
 #'
+#' \strong{Confidence intervals}: \cr
+#' Simultaneous \eqn{(1 - \alpha)100\%} confidence intervals for all linear
+#' combinations of the sample means are given by the expression
+#'
+#' \deqn{\left( \bar{\bm{x}} - \bm{\mu}_0 \right) \pm
+#' \sqrt{\frac{1}{K} \; F_{p, n - p, \alpha} \; \bm{s}} ,}{%
+#'   (x.bar - \mu_0) \pm sqrt(1 / K F_{p, n - p, \alpha} s) ,}
+#'
+#' where \eqn{\bm{s}}{s} is the vector of the diagonal elements of the
+#' variance-covariance matrix \eqn{\bm{S}}{S}. With \eqn{(1 - \alpha)100\%}
+#' confidence, this interval covers the respective linear combination of the
+#' differences between the sample means and the hypothetical means. If not
+#' the linear combination of the variables is of interest but rather the
+#' individual variables, then the Bonferroni corrected confidence intervals
+#' should be used instead which are given by the expression
+#'
+#' \deqn{\left( \bar{\bm{x}} - \bm{\mu}_0 \right) \pm
+#'   t_{n - 1, \frac{\alpha}{2 p}} \;
+#'   \sqrt{\frac{1}{k} \; \bm{s}} .}{%
+#'   (x_T - x_R) \pm t_{n - 1, \alpha / (2 p)} sqrt(1 / k s) .}
+#'
 #' @return A list with the following elements is returned:
-#' \item{Parameters}{Parameters determined for the estimation of
-#'   Hotelling's \eqn{T^2}.}
-#' \item{S.pool}{Pooled variance-covariance matrix.}
-#' \item{covs}{A list with the elements \code{S.b1} and \code{S.b2}, i.e. the
-#'   variance-covariance matrices of the reference and the test group,
-#'   respectively.}
-#' \item{means}{A list with the elements \code{mean.b1}, \code{mean.b2} and
-#'   \code{mean.diff}, i.e. the average profile values (for each time point) of
-#'   the reference and the test group and the corresponding differences of
-#'   the averages, respectively.}
+#' \item{Parameters}{Parameters determined for the estimation of Hotelling's
+#'   \eqn{T^2}.}
+#' \item{cov}{The variance-covariance matrix of the reference group.}
+#' \item{means}{A list with the elements \code{mean.r}, \code{mean.t} and
+#'   \code{mean.diff}, i.e. the average model parameters of the reference
+#'   group, the hypothetical average model parameters (handed over via the
+#'   \code{mu} parameter) and the corresponding differences, respectively.}
+#' \item{CI}{A list with the elements \code{Hotelling} and \code{Bonferroni},
+#'   i.e. data frames with columns \code{LCL} and \code{UCL} for the lower
+#'   and upper \eqn{(1 - \alpha)100\%} confidence limits, respectively, and
+#'   rows for each time point or model parameter.}
 #'
 #' The \code{Parameters} element contains the following information:
-#' \item{DM}{Mahalanobis distance of the samples.}
+#' \item{dm}{Mahalanobis distance of the samples.}
 #' \item{df1}{Degrees of freedom (number of variables or time points).}
 #' \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
 #' \item{alpha}{Provided significance level.}
@@ -73,6 +116,7 @@
 #' \item{T2}{Hotelling's \eqn{T^2} statistic (\eqn{F}-distributed).}
 #' \item{F}{Observed \eqn{F} value.}
 #' \item{F.crit}{Critical \eqn{F} value.}
+#' \item{t.crit}{Critical \eqn{t} value.}
 #' \item{p.F}{\eqn{p} value for Hotelling's \eqn{T^2} test statistic.}
 #'
 #' @references
@@ -84,52 +128,374 @@
 #' W.A., Eds., Techniques of Statistical Analysis, McGraw Hill, New York,
 #' 111-184.
 #'
-#' @seealso \code{\link{mimcr}}, \code{\link{get_sim_lim}}.
+#' @seealso \code{\link{get_T2_two}}, \code{\link{get_sim_lim}}.
 #'
-#' @example man/examples/examples_get_hotellings.R
+#' @example man/examples/examples_get_T2_one.R
 #'
 #' @importFrom stats cov
 #' @importFrom stats pf
 #' @importFrom stats qf
+#' @importFrom stats qt
+#'
+#' @export
+
+get_T2_one <- function(m, mu, signif, na_rm = FALSE) {
+  if (!is.matrix(m)) {
+    stop("The parameter m must be a matrix.")
+  }
+  if (!is.numeric(mu)) {
+    stop("The parameter mu must be a numeric vector.")
+  }
+  if (ncol(m) != length(mu)) {
+    stop("The number of columns in m must be the number of items in mu.")
+  }
+  if (!all(is.finite(mu))) {
+    stop("Since mu contains NA/NaN/Inf values the assessment is not possible.")
+  }
+  if (signif <= 0 || signif > 1) {
+    stop("Please specify signif as (0, 1]")
+  }
+  if (!is.logical(na_rm) || length(na_rm) > 1) {
+    stop("The parameter na_rm must be a logical of length 1.")
+  }
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Preparation of data
+
+  if (na_rm == TRUE) {
+    m <- m[apply(m, 1, function(x) all(!is.na(x))), ]
+  } else {
+    if (any(is.na(m))) {
+      message("Note that m contains NA/NaN values.\n",
+              "  Please consider using the option na_rm = TRUE or\n",
+              "  imputing missing values.")
+    }
+  }
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Calculation of various parameters
+
+  # Number of profile time points (equal to sum(diag(solve(m_vc) %*% m_vc)))
+  # or model parameters and number of observations of the reference group
+  n_tp <- ncol(m)
+  n_r <- nrow(m)
+
+  # Covariance matrix of the reference group
+  m_vc_r <- cov(m)
+
+  # Average dissolution at a given time point or average model parameter
+  # of the reference group
+  mean_r <- apply(X = m, MARGIN = 2, FUN = mean, na.rm = na_rm)
+  mean_diff <- mean_r - mu
+
+  # Mahalanobis distance (dm)
+  dm <- sqrt(t(mean_diff) %*% solve(m_vc_r) %*% mean_diff)
+
+  # Degrees of freedom
+  df1 <- n_tp
+  df2 <- n_r - n_tp
+
+  # Scaling factors for the calculation of the Hotelling's T2 statistic
+  k <- n_r
+  kk <- k * df2 / ((n_r - 1) * df1)
+
+  # Hotelling's T2 statistic (general) and observed F value (ff_obs)
+  tt2_value <- k * dm^2
+  ff_obs <- kk * dm^2
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Calculation of critical F values
+
+  # (1 - alpha) * 100th percentile of the F distribution with given degrees of
+  # freedom
+  ff_crit <- qf(p = 1 - signif, df1 = df1, df2 = df2)
+
+  # (1 - alpha) * 100th percentile of the t distribution with given degrees of
+  # freedom
+  t_crit <- qt(p = 1 - signif / (2 * n_tp), df = n_r - 1)
+
+  # Probability of seeing something as or even more extreme than ff_obs
+  p_ff <- 1 - pf(ff_obs, df1 = df1, df2 = df2)
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Determination of confidence intervals
+
+  l_ci <- list(
+    Hotelling = data.frame(
+      LCL = mean_r - sqrt(1 / kk * ff_crit * diag(m_vc_r)),
+      UCL = mean_r + sqrt(1 / kk * ff_crit * diag(m_vc_r))
+    ),
+    Bonferroni = data.frame(
+      LCL = mean_r - t_crit * sqrt(1 / k * diag(m_vc_r)),
+      UCL = mean_r + t_crit * sqrt(1 / k * diag(m_vc_r))
+    )
+  )
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Compilation of results
+
+  t_res <- c(dm, df1, df2, signif, kk, k, tt2_value, ff_obs,
+             ff_crit, t_crit, p_ff)
+  names(t_res) <- c("dm", "df1", "df2", "signif", "K", "k",
+                    "T2", "F", "F.crit", "t.crit", "p.F")
+
+  return(list(Parameters = t_res,
+              cov = m_vc_r,
+              means = list(mean.r = mean_r,
+                           mean.t = mu,
+                           mean.diff = mean_diff),
+              CI = l_ci))
+}
+
+#' Hotelling's statistics (for two independent (small) samples)
+#'
+#' The function \code{get_hotellings()} estimates the parameters for Hotelling's
+#' two-sample \eqn{T^2} statistic for small samples. \strong{Note that the
+#' function \code{get_hotellings()} is deprecated}. Upon the introduction of
+#' the new function \code{get_T2_one()} it was renamed to \code{get_T2_two()}.
+#' Please use the new function \code{get_T2_two()} instead of the obsolete
+#' function \code{get_hotellings()}.
+#'
+#' @inherit get_T2_two params details return references seealso
+#'
+#' @example man/examples/examples_get_hotellings.R
+#'
+#' @importFrom lifecycle deprecate_soft
 #'
 #' @export
 
 get_hotellings <- function(m1, m2, signif) {
+  deprecate_soft("0.1.4", "get_hotellings()", "get_T2_two()")
+
+  res <- get_T2_two(m1 = m1, m2 = m2, signif = signif)
+
+  return(res)
+}
+
+#' Hotelling's statistics (for two independent (small) samples)
+#'
+#' The function \code{get_T2_two()} estimates the parameters for Hotelling's
+#' two-sample \eqn{T^2} statistic for small samples.
+#'
+#' @param m1 A matrix with the data of the reference group, e.g. a matrix
+#'   representing dissolution profiles, i.e. with rows for the different dosage
+#'   units and columns for the different time points, or a matrix for the
+#'   different model parameters (columns) of different dosage units (rows).
+#' @param m2 A matrix with the same dimensions as matrix \code{m1} with the
+#'   data of the test group having the characteristics as the data of matrix
+#'   \code{m1}.
+#' @inheritParams get_T2_one
+#'
+#' @details The two-sample Hotelling's \eqn{T^2} test statistic is given by
+#'
+#' \deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x}_T - \bm{x}_R
+#'   \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) ,}{%
+#'   (n_T n_R) / (n_T + n_R) * (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) ,}
+#'
+#' where \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R} are the vectors of the
+#' sample means of the test (\eqn{T}) and reference (\eqn{R}) group, e.g.
+#' vectors of the average dissolution per time point or of the average model
+#' parameters, \eqn{n_T} and \eqn{n_R} are the numbers of observations of the
+#' reference and the test group, respectively (i.e. the number of rows in
+#' matrices \code{m1} and \code{m2} handed over to the \code{get_T2_two()}
+#' function), and \eqn{\bm{S}_{pooled}}{S_{pooled}} is the pooled
+#' variance-covariance matrix which is calculated by
+#'
+#' \deqn{\bm{S}_{pooled} = \frac{(n_R - 1) \bm{S}_R + (n_T - 1) \bm{S}_T}{%
+#'   n_R + n_T - 2} ,}{S_{pooled} = ((n_R - 1) S_R + (n_T - 1) S_T) /
+#'   (n_R + n_T - 2) ,}
+#'
+#' where \eqn{\bm{S}_R}{S_R} and \eqn{\bm{S}_T}{S_T} are the estimated
+#' variance-covariance matrices which are calculated from the matrices of the
+#' two groups being compared, i.e. \code{m1} and \code{m2}. The matrix
+#' \eqn{\bm{S}_{pooled}^{-1}}{S_{pooled}^{-1}} is the inverted
+#' variance-covariance matrix. As the number of columns of matrices \code{m1}
+#' and \code{m2} increases, and especially as the correlation between the
+#' columns increases, the risk increases that the pooled variance-covariance
+#' matrix \eqn{\bm{S}_{pooled}}{S_{pooled}} is ill-conditioned or even singular
+#' and thus cannot be inverted. The term
+#'
+#' \deqn{D_M = \sqrt{ \left( \bm{x}_T - \bm{x}_R \right)^{\top}
+#'   \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) }}{%
+#'   D_M = sqrt((x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R))}
+#'
+#' is the Mahalanobis distance which is used to measure the difference between
+#' two multivariate means. For large samples, \eqn{T^2} is approximately
+#' chi-square distributed with \eqn{p} degrees of freedom, where \eqn{p} is
+#' the number of variables, i.e. the number of dissolution profile time points
+#' or the number of model parameters. In terms of the Mahalanobis distance,
+#' Hotelling's \eqn{T^2} statistic can be expressed has
+#'
+#' \deqn{\frac{n_T n_R}{n_T + n_R} \; D_M^2 = k \; D_M^2 .}
+#'
+#' To transform the Hotelling's \eqn{T^2} statistic into an \eqn{F}-statistic,
+#' a conversion factor is necessary, i.e.
+#'
+#' \deqn{K = k \; \frac{n_T + n_R - p - 1}{\left( n_T + n_R - 2 \right) p} .}{%
+#'   k (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) .}
+#'
+#' With this transformation, the following test statistic can be applied:
+#'
+#' \deqn{K \; D_M^2 \leq F_{p, n_T + n_R - p - 1, \alpha} .}{%
+#'   K D_M^2 \leq F_{p, n_T + n_R - p - 1, \alpha} .}
+#'
+#' Under the null hypothesis, \eqn{H_0: \bm{\mu}_T = \bm{\mu}_R}{%
+#' H_0: \mu_T = \mu_R}, this \eqn{F}-statistic is \eqn{F}-distributed with
+#' \eqn{p} and \eqn{n_T + n_R - p - 1} degrees of freedom. \eqn{H_0} is
+#' rejected at significance level \eqn{\alpha} if the \eqn{F}-value exceeds
+#' the critical value from the \eqn{F}-table evaluated at \eqn{\alpha}, i.e.
+#' \eqn{F > F_{p, n_T + n_R - p - 1, \alpha}}. The null hypothesis is satisfied
+#' if, and only if, the population means are identical for all variables. The
+#' alternative is that at least one pair of these means is different. \cr
+#'
+#' The following assumptions concerning the data are made:
+#' \itemize{
+#' \item The data from population \eqn{i} is a sample from a population with
+#'   mean vector \eqn{\mu_i}. In other words, it is assumed that there are no
+#'   sub-populations.
+#' \item The data from both populations have common variance-covariance matrix
+#'   \eqn{\Sigma}.
+#' \item The elements from both populations are independently sampled, i.e.
+#'   the data values are independent.
+#' \item Both populations are multivariate normally distributed.
+#' }
+#'
+#' \strong{Confidence intervals}: \cr
+#' Confidence intervals for the mean differences at each time point or
+#' confidence intervals for the mean differences between the parameter
+#' estimates of the reference and the test group are calculated by aid of the
+#' formula
+#'
+#' \deqn{\left( \bm{x}_T - \bm{x}_R \right) \pm \sqrt{\frac{1}{K} \;
+#'   F_{p, n_T + n_R - p - 1, \alpha} \; \bm{s}_{pooled}} ,}{%
+#'   (x_T - x_R) \pm sqrt(1 / K F_{p, n_T + n_R - p - 1, \alpha} s_{pooled}) ,}
+#'
+#' where \eqn{\bm{s}_{pooled}}{s_{pooled}} is the vector of the diagonal
+#' elements of the pooled variance-covariance matrix
+#' \eqn{\bm{S}_{pooled}}{S_{pooled}}. With \eqn{(1 - \alpha)100\%} confidence,
+#' this interval covers the respective linear combination of the differences
+#' between the means of the two sample groups. If not the linear combination
+#' of the variables is of interest but rather the individual variables, then
+#' the Bonferroni corrected confidence intervals should be used instead which
+#' are given by the expression
+#'
+#' \deqn{\left( \bm{x}_T - \bm{x}_R \right) \pm
+#'   t_{n_T + n_R - 2, \frac{\alpha}{2 p}} \;
+#'   \sqrt{\frac{1}{k} \; \bm{s}_{pooled}} .}{%
+#'   (x_T - x_R) \pm t_{n_T + n_R - 2, \alpha / (2 p)} sqrt(1 / k s_{pooled}) .}
+#'
+#' @return A list with the following elements is returned:
+#' \item{Parameters}{Parameters determined for the estimation of Hotelling's
+#'   \eqn{T^2}.}
+#' \item{S.pool}{Pooled variance-covariance matrix.}
+#' \item{covs}{A list with the elements \code{S.b1} and \code{S.b2}, i.e. the
+#'   variance-covariance matrices of the reference and the test group,
+#'   respectively.}
+#' \item{means}{A list with the elements \code{mean.b1}, \code{mean.b2} and
+#'   \code{mean.diff}, i.e. the average dissolution profile values (for each
+#'   time point) or the average model parameters of the reference and the test
+#'   group and the corresponding differences, respectively.}
+#' \item{CI}{A list with the elements \code{Hotelling} and \code{Bonferroni},
+#'   i.e. data frames with columns \code{LCL} and \code{UCL} for the lower
+#'   and upper \eqn{(1 - \alpha)100\%} confidence limits, respectively, and
+#'   rows for each time point or model parameter.}
+#'
+#' The \code{Parameters} element contains the following information:
+#' \item{dm}{Mahalanobis distance of the samples.}
+#' \item{df1}{Degrees of freedom (number of variables or time points).}
+#' \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
+#' \item{alpha}{Provided significance level.}
+#' \item{K}{Scaling factor for \eqn{F} to account for the distribution of the
+#'   \eqn{T^2} statistic.}
+#' \item{k}{Scaling factor for the squared Mahalanobis distance to obtain
+#'   the \eqn{T^2} statistic.}
+#' \item{T2}{Hotelling's \eqn{T^2} statistic (\eqn{F}-distributed).}
+#' \item{F}{Observed \eqn{F} value.}
+#' \item{F.crit}{Critical \eqn{F} value.}
+#' \item{t.crit}{Critical \eqn{t} value.}
+#' \item{p.F}{\eqn{p} value for Hotelling's \eqn{T^2} test statistic.}
+#'
+#' @references
+#' Hotelling, H. The generalisation of Student's ratio. \emph{Ann Math Stat}.
+#' 1931; \strong{2}(3): 360-378.
+#'
+#' Hotelling, H. (1947) \emph{Multivariate quality control illustrated by air
+#' testing of sample bombsights}. In: Eisenhart, C., Hastay, M.W., and Wallis,
+#' W.A., Eds., Techniques of Statistical Analysis, McGraw Hill, New York,
+#' 111-184.
+#'
+#' @seealso \code{\link{get_T2_one}}, \code{\link{get_sim_lim}},
+#' \code{\link{mimcr}}.
+#'
+#' @example man/examples/examples_get_T2_two.R
+#'
+#' @importFrom stats cov
+#' @importFrom stats pf
+#' @importFrom stats qf
+#' @importFrom stats qt
+#'
+#' @export
+
+get_T2_two <- function(m1, m2, signif, na_rm = FALSE) {
   if (!is.matrix(m1)) {
     stop("The sample m1 must be provided as matrix.")
   }
   if (!is.matrix(m2)) {
     stop("The sample m2 must be provided as matrix.")
   }
-  if (!isTRUE(all.equal(dim(m1), dim(m2)))) {
-    stop("The parameters m1 and m2 must have the same dimensions.")
+  if (!(ncol(m1) == ncol(m2))) {
+    stop("The matrices m1 and m2 must have the same number of columns.")
   }
-  if (signif <= 0 | signif > 1) {
+  if (signif <= 0 || signif > 1) {
     stop("Please specify signif as (0, 1]")
+  }
+  if (!is.logical(na_rm) || length(na_rm) > 1) {
+    stop("The parameter na_rm must be a logical of length 1.")
+  }
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Preparation of data
+
+  if (na_rm == TRUE) {
+    m1 <- m1[apply(m1, 1, function(x) all(!is.na(x))), ]
+    m2 <- m2[apply(m2, 1, function(x) all(!is.na(x))), ]
+  } else {
+    if (any(is.na(m1))) {
+      message("Note that m1 contains NA/NaN values.\n",
+              "  Please consider using the option na_rm = TRUE or\n",
+              "  imputing missing values.")
+    }
+    if (any(is.na(m2))) {
+      message("Note that m2 contains NA/NaN values.\n",
+              "  Please consider using the option na_rm = TRUE or\n",
+              "  imputing missing values.")
+    }
   }
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Calculation of various parameters
 
-  # Number of profile time points (equal to sum(diag(solve(t_S) %*% t_S))) and
-  # number of observations of the reference and test group
+  # Number of profile time points (equal to sum(diag(solve(m_vc) %*% m_vc)))
+  # or model parameters and number of observations of the reference and test
+  # group
   n_tp <- ncol(m1)
-  n_b1 <- n_b2 <- nrow(m1)
+  n_b1 <- nrow(m1)
+  n_b2 <- nrow(m2)
 
   # Covariance matrices of the reference and test group and their pooled
   # covariance matrix
-  S_b1 <- cov(m1)
-  S_b2 <- cov(m2)
-  t_S <- ((n_b1 - 1) * S_b1 + (n_b2 - 1) * S_b2) / (n_b1 + n_b2 - 2)
+  m_vc_b1 <- cov(m1)
+  m_vc_b2 <- cov(m2)
+  m_vc <- ((n_b1 - 1) * m_vc_b1 + (n_b2 - 1) * m_vc_b2) / (n_b1 + n_b2 - 2)
 
-  # Average dissolution at a given time point of the reference and test group
-  # and the corresponding difference vector
-  mean_b1 <- apply(X = m1, MARGIN = 2, FUN = mean)
-  mean_b2 <- apply(X = m2, MARGIN = 2, FUN = mean)
+  # Average dissolution at a given time point or average model parameter
+  # of the reference and test group and the corresponding difference vector
+  mean_b1 <- apply(X = m1, MARGIN = 2, FUN = mean, na.rm = TRUE)
+  mean_b2 <- apply(X = m2, MARGIN = 2, FUN = mean, na.rm = TRUE)
   mean_diff <- mean_b2 - mean_b1
 
-  # Mahalanobis distance (DM)
-  DM <- sqrt(t(mean_diff) %*% solve(t_S) %*% mean_diff)
+  # Mahalanobis distance (dm)
+  dm <- sqrt(t(mean_diff) %*% solve(m_vc) %*% mean_diff)
 
   # Degrees of freedom
   df1 <- n_tp
@@ -137,38 +503,56 @@ get_hotellings <- function(m1, m2, signif) {
 
   # Scaling factors for the calculation of the Hotelling's T2 statistic
   k <- (n_b2 * n_b1) / (n_b2 + n_b1)
-  K <- k * df2 / ((n_b2 + n_b1 - 2) * df1)
+  kk <- k * df2 / ((n_b2 + n_b1 - 2) * df1)
 
-  # Hotelling's T2 statistic (general) and observed F value
-  T2_value <- k * DM^2
-  F_obs <- K * DM^2
+  # Hotelling's T2 statistic (general) and observed F value (ff_obs)
+  tt2_value <- k * dm^2
+  ff_obs <- kk * dm^2
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Calculation of critical F values
 
   # (1 - alpha) * 100th percentile of the F distribution with given degrees of
   # freedom
-  F_crit <- qf(p = (1 - signif), df1 = df1, df2 = df2)
+  ff_crit <- qf(p = 1 - signif, df1 = df1, df2 = df2)
 
-  # Probability of seeing something as or even more extreme than F_obs
-  p_F <- 1 - pf(F_obs, df1 = df1, df2 = df2)
+  # (1 - alpha) * 100th percentile of the t distribution with given degrees of
+  # freedom
+  t_crit <- qt(p = 1 - signif / (2 * n_tp), df = n_b1 + n_b2 - 2)
+
+  # Probability of seeing something as or even more extreme than ff_obs
+  p_ff <- 1 - pf(ff_obs, df1 = df1, df2 = df2)
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Determination of confidence intervals
+
+  l_ci <- list(
+    Hotelling = data.frame(
+      LCL = mean_diff - sqrt(1 / kk * ff_crit * diag(m_vc)),
+      UCL = mean_diff + sqrt(1 / kk * ff_crit * diag(m_vc))
+    ),
+    Bonferroni = data.frame(
+      LCL = mean_diff - t_crit * sqrt(1 / k * diag(m_vc)),
+      UCL = mean_diff + t_crit * sqrt(1 / k * diag(m_vc))
+    )
+  )
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Compilation of results
 
-  t_res <- c(DM, df1, df2, signif, K, k, T2_value, F_obs, F_crit, p_F)
-  names(t_res) <- c("DM", "df1", "df2", "signif", "K", "k",
-                    "T2", "F", "F.crit", "p.F")
+  t_res <- c(dm, df1, df2, signif, kk, k, tt2_value, ff_obs,
+             ff_crit, t_crit, p_ff)
+  names(t_res) <- c("dm", "df1", "df2", "signif", "K", "k",
+                    "T2", "F", "F.crit", "t.crit", "p.F")
 
-  l_res <- list(Parameters = t_res,
-                S.pool = t_S,
-                covs = list(S.b1 = S_b1,
-                           S.b2 = S_b2),
-                means = list(mean.b1 = mean_b1,
-                             mean.b2 = mean_b2,
-                             mean.diff = mean_diff))
-
-  return(l_res)
+  return(list(Parameters = t_res,
+              S.pool = m_vc,
+              covs = list(S.b1 = m_vc_b1,
+                          S.b2 = m_vc_b2),
+              means = list(mean.b1 = mean_b1,
+                           mean.b2 = mean_b2,
+                           mean.diff = mean_diff),
+              CI = l_ci))
 }
 
 #' Similarity limit
@@ -178,7 +562,7 @@ get_hotellings <- function(m1, m2, signif) {
 #'
 #' @param lhs A list of the estimates of Hotelling's two-sample \eqn{T^2}
 #'   statistic for small samples as returned by the function
-#'   \code{\link{get_hotellings}()}.
+#'   \code{\link{get_T2_two}()}.
 #' @inheritParams mimcr
 #'
 #' @details Details about the estimation of similarity limits in terms of
@@ -190,7 +574,7 @@ get_hotellings <- function(m1, m2, signif) {
 #' @inheritSection mimcr T2 test for equivalence
 #'
 #' @return A vector containing the following information is returned:
-#' \item{DM}{The Mahalanobis distance of the samples.}
+#' \item{dm}{The Mahalanobis distance of the samples.}
 #' \item{df1}{Degrees of freedom (number of variables or time points).}
 #' \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
 #' \item{alpha}{The provided significance level.}
@@ -227,7 +611,7 @@ get_hotellings <- function(m1, m2, signif) {
 #' 2016; \strong{78}(4): 587-592.\cr
 #' \url{https://www.ecv.de/suse_item.php?suseId=Z|pi|8430}
 #'
-#' @seealso \code{\link{mimcr}}, \code{\link{get_hotellings}}.
+#' @seealso \code{\link{mimcr}}, \code{\link{get_T2_two}}.
 #'
 #' @example man/examples/examples_get_sim_lim.R
 #'
@@ -238,13 +622,13 @@ get_hotellings <- function(m1, m2, signif) {
 
 get_sim_lim <- function(mtad, lhs) {
   if (!inherits(lhs, "list")) {
-    stop("The parameter lhs must be a list returned by get_hotellings.")
+    stop("The parameter lhs must be a list returned by get_T2_two().")
   } else {
     if (sum(names(lhs) %in% c("Parameters", "S.pool", "covs", "means")) != 4) {
-      stop("The parameter lhs must be a list returned by get_hotellings.")
+      stop("The parameter lhs must be a list returned by get_T2_two().")
     }
   }
-  if (mtad <= 0 | mtad > 50) {
+  if (mtad <= 0 || mtad > 50) {
     stop("Please specify mtad as (0, 50]")
   }
 
@@ -253,34 +637,34 @@ get_sim_lim <- function(mtad, lhs) {
 
   hs <- lhs[[1]]
 
-  # Global similarity limit D_crit determined according to Tsong 1996.
-  # Note that D_glob is a vector of p * mtad specified as the global (or local)
+  # Global similarity limit d_crit determined according to Tsong 1996.
+  # Note that d_glob is a vector of p * mtad specified as the global (or local)
   # similarity limit (in percent), i.e. the maximum tolerable average mean_diff
   # at all time points p.
-  D_glob <- rep(mtad, times = hs["df1"])
-  D_crit <- sqrt(t(D_glob) %*% solve(lhs[[2]]) %*% D_glob)
+  d_glob <- rep(mtad, times = hs["df1"])
+  d_crit <- sqrt(t(d_glob) %*% solve(lhs[[2]]) %*% d_glob)
 
   # Non-centrality parameter that is based on  the equivalence region
-  ncp_Hoffelder <- hs["k"] * D_crit^2
+  ncp_hoffelder <- hs["k"] * d_crit^2
 
   # alpha * 100th percentile of the F distribution with given degrees of freedom
   # and the
-  F_crit_Hoffelder <-
-    qf(p = hs["signif"], df1 = hs["df1"], df2 = hs["df2"], ncp = ncp_Hoffelder)
+  ff_crit_hoffelder <-
+    qf(p = hs["signif"], df1 = hs["df1"], df2 = hs["df2"], ncp = ncp_hoffelder)
 
-  # Probability of seeing something as or even more extreme than F_obs, given
+  # Probability of seeing something as or even more extreme than ff_obs, given
   # the degrees of freedom and the non-centrality parameter defined by the
   # equivalence region
-  p_F_Hoffelder <-
-    pf(hs["F"], df1 = hs["df1"], df2 = hs["df2"], ncp = ncp_Hoffelder)
+  p_ff_hoffelder <-
+    pf(hs["F"], df1 = hs["df1"], df2 = hs["df2"], ncp = ncp_hoffelder)
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Compilation of results
 
-  t_res <- c(hs["DM"], hs["df1"], hs["df2"], hs["signif"], hs["K"],
-             hs["k"], hs["T2"], hs["F"], ncp_Hoffelder, hs["F.crit"],
-             F_crit_Hoffelder, hs["p.F"], p_F_Hoffelder, mtad, D_crit)
-  names(t_res) <- c("DM", "df1", "df2", "alpha", "K", "k", "T2",
+  t_res <- c(hs["dm"], hs["df1"], hs["df2"], hs["signif"], hs["K"],
+             hs["k"], hs["T2"], hs["F"], ncp_hoffelder, hs["F.crit"],
+             ff_crit_hoffelder, hs["p.F"], p_ff_hoffelder, mtad, d_crit)
+  names(t_res) <- c("dm", "df1", "df2", "alpha", "K", "k", "T2",
                     "F", "ncp.Hoffelder", "F.crit", "F.crit.Hoffelder",
                     "p.F", "p.F.Hoffelder", "MTAD", "Sim.Limit")
   return(t_res)
@@ -290,15 +674,15 @@ get_sim_lim <- function(mtad, lhs) {
 #'
 #' The function \code{f1()} calculates the dissimilarity factor \eqn{f_1}.
 #'
-#' @param use_EMA A character string indicating if the dissimilarity factor
-#'   \eqn{f_1} should be calculated following the EMA guideline \dQuote{On
-#'   the investigation of bioequivalence} (\code{"yes"}, the default) or not
-#'   (\code{"no"}), i.e. the recommendations concerning the similarity factor
-#'   \eqn{f_2}. A third option is \code{"ignore"}. If \code{use_EMA} is
-#'   \code{"yes"} or \code{"no"} the appropriate profile portion is determined
-#'   on the basis of the values of the parameter \code{bounds}. If it is
-#'   \code{"ignore"}, the complete profiles are used as specified by the
-#'   parameter \code{tcol}.
+#' @param use_ema A character string indicating whether the dissimilarity
+#'   factor \eqn{f_1} should be calculated following the EMA guideline
+#'   \dQuote{On the investigation of bioequivalence} (\code{"yes"}, the
+#'   default) or not (\code{"no"}), i.e. the recommendations concerning the
+#'   similarity factor \eqn{f_2}. A third option is \code{"ignore"}. If
+#'   \code{use_ema} is \code{"yes"} or \code{"no"} the appropriate profile
+#'   portion is determined on the basis of the values of the parameter
+#'   \code{bounds}. If it is \code{"ignore"}, the complete profiles are used
+#'   as specified by the parameter \code{tcol}.
 #' @inheritParams bootstrap_f2
 #'
 #' @details Similarity of dissolution profiles is often assessed using the
@@ -342,11 +726,11 @@ get_sim_lim <- function(mtad, lhs) {
 #' @return A list with the following elements is returned:
 #' \item{f1}{A numeric value representing the similarity factor \eqn{f_1}.}
 #' \item{Profile.TP}{A named numeric vector of the columns in \code{data}
-#'   specified by \code{tcol} and depending on the selection of \code{use_EMA}.
-#'   Given that the column names contain extractable numeric information,
-#'   e.g., specifying the testing time points of the dissolution profile, it
-#'   contains the corresponding values. Elements where no numeric information
-#'   could be extracted are \code{NA}.}
+#'   specified by \code{tcol} and depending on the selection of \code{use_ema}.
+#'   Given that the column names contain extractable numeric information, e.g.,
+#'   the testing time points of the dissolution profile, it contains the
+#'   corresponding numeric values. Elements where no numeric information could
+#'   be extracted are \code{NA}.}
 #'
 #' @references
 #' United States Food and Drug Administration (FDA). Guidance for industry:
@@ -361,9 +745,8 @@ get_sim_lim <- function(mtad, lhs) {
 #'
 #' European Medicines Agency (EMA), Committee for Medicinal Products for
 #' Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-#' CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-#' \url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-#' guideline-investigation-bioequivalence-rev1_en.pdf}
+#' \href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+#' CPMP/EWP/QWP/1401/98 Rev. 1}.
 #'
 #' @seealso \code{\link{f2}}.
 #'
@@ -371,17 +754,18 @@ get_sim_lim <- function(mtad, lhs) {
 #'
 #' @export
 
-f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
+f1 <- function(data, tcol, grouping, use_ema = "yes", bounds = c(1, 85),
+               nsf = c(1, 2)) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
-  if (!is.numeric(tcol) | length(tcol) < 3) {
+  if (!is.numeric(tcol) || length(tcol) < 3) {
     stop("The parameter tcol must be an integer vector of at least length 3.")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer vector.")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (sum(grepl("\\d", colnames(data[, tcol]))) < length(tcol)) {
@@ -400,17 +784,29 @@ f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   if (!is.factor(data[, grouping])) {
     stop("The grouping variable's column in data must be a factor.")
   }
-  if (!(use_EMA %in% c("yes", "no", "ignore"))) {
-    stop("Please specify use_EMA either as \"yes\" or \"no\" or \"ignore\".")
+  if (!(use_ema %in% c("yes", "no", "ignore"))) {
+    stop("Please specify use_ema either as \"yes\" or \"no\" or \"ignore\".")
   }
-  if (!is.numeric(bounds) | length(bounds) != 2) {
-    stop("The paramter bounds must be a numeric vector of length 2.")
+  if (!is.numeric(bounds) || length(bounds) != 2) {
+    stop("The parameter bounds must be a numeric vector of length 2.")
   }
   if (bounds[1] > bounds[2]) {
     stop("Please specify bounds in the form c(lower limit, upper limit).")
   }
-  if (bounds[1] < 0 | bounds[2] > 100) {
+  if (bounds[1] < 0 || bounds[2] > 100) {
     stop("Please specify bounds in the range [0, 100].")
+  }
+  if (!is.numeric(nsf) && any(!is.na(nsf))) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (any(nsf < 0)) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (length(nsf) != length(bounds)) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
+  }
+  if (!isTRUE(all.equal(nsf, as.integer(nsf)))) {
+    stop("The parameter nsf must be a positive integer of length bounds.")
   }
 
   # <-><-><-><->
@@ -427,7 +823,7 @@ f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   b1 <- make_grouping(data = data, grouping = grouping)
 
   # Check if the two groups have the same number of observations. If  not so,
-  # and if the parameter use_EMA is either "no" or "ignore", adjust the data
+  # and if the parameter use_ema is either "no" or "ignore", adjust the data
   # frames in such a way that both groups to be compared will have the same
   # number of observations and that the number of observations per group
   # corresponds to the largest common value (lcv) between number of observations
@@ -435,15 +831,15 @@ f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   # Note: an alternative would be to use the least common multiple.
   # Note that together with the data adjustment the b1 vector must be reset.
 
-  if (use_EMA == "yes" & sum(b1) != sum(!b1)) {
+  if (use_ema == "yes" && sum(b1) != sum(!b1)) {
     stop("The two groups to be compared must have the same number of ",
          "observations.")
   }
-  if (use_EMA %in% c("no", "ignore") & sum(b1) != sum(!b1)) {
-    warning("The two groups to be compared do not have the same number of ",
-            "observations. Thus, the number of rows is adjusted according ",
-            "to the largest common value between the number of observations ",
-            "per group.")
+  if (use_ema %in% c("no", "ignore") && sum(b1) != sum(!b1)) {
+    warning("The two groups to be compared do not have the same number of\n",
+            "  observations. Thus, the number of rows is adjusted according\n",
+            "  to the largest common value between the number of\n",
+            "  observations per group.")
 
     data <- balance_observations(data = data, groups = b1,
                                  n_obs = max(sum(b1), sum(!b1)))
@@ -461,15 +857,15 @@ f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   #   less than 10% from the second to the last time point.
 
   ok <- get_profile_portion(data = data, tcol = tcol, groups = b1,
-                            use_EMA = use_EMA, bounds = bounds)
+                            use_ema = use_ema, bounds = bounds, nsf = nsf)
 
-  if (use_EMA == "yes" & sum(ok) < 3) {
-    stop("According to EMA the profiles must comprise a minimum of 3 time ",
-         "points. The actual profiles comprise ", sum(ok), " points only.")
+  if (use_ema == "yes" && sum(ok) < 3) {
+    stop("According to EMA the profiles must comprise a minimum of 3 time\n",
+         "  points. The actual profiles comprise ", sum(ok), " points only.")
   }
   if (sum(ok) < 3) {
-    warning("The profiles should comprise a minimum of 3 time points. ",
-            "The actual profiles comprise ", sum(ok), " points only.")
+    warning("The profiles should comprise a minimum of 3 time points.\n",
+            "  The actual profiles comprise ", sum(ok), " points only.")
   }
 
   # <-><-><-><->
@@ -495,8 +891,8 @@ f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
 #' The function \code{get_f1()} calculates the dissimilarity factor \eqn{f_1}
 #' for the assessment of dissolution profiles.
 #'
-#' @param data A data frame with the dissolution profile data in wide format.
-#' @param ins A vector of indices generated regarding the grouping.
+#' @param ins A vector of indices that specifies the rows in \code{data}
+#'   which should be used for the assessment.
 #' @inheritParams bootstrap_f2
 #'
 #' @inherit f1 details references
@@ -506,12 +902,13 @@ f1 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
 #' @seealso \code{\link{get_f2}}.
 #'
 #' @keywords internal
+#' @noRd
 
 get_f1 <- function(data, ins, tcol, grouping) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
-  if (!is.numeric(ins) | length(ins) < 3 | length(ins) > nrow(data)) {
+  if (!is.numeric(ins) || length(ins) < 3 || length(ins) > nrow(data)) {
     stop("The parameter ins must be an integer vector not longer than ",
          "nrow(data).")
   }
@@ -519,13 +916,13 @@ get_f1 <- function(data, ins, tcol, grouping) {
     stop("The parameter ins must be an integer vector not longer than ",
          "nrow(data).")
   }
-  if (!is.numeric(tcol) | length(tcol) < 3) {
+  if (!is.numeric(tcol) || length(tcol) < 3) {
     stop("The parameter tcol must be an integer vector of at least length 3.")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer vector.")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (sum(grepl("\\d", colnames(data[, tcol]))) < length(tcol)) {
@@ -553,15 +950,20 @@ get_f1 <- function(data, ins, tcol, grouping) {
     stop("The number of levels in column ", grouping, " differs from 2.")
   }
 
+  if (any(is.na(data[, tcol]))) {
+    message("Note that data contains NA/NaN values.\n",
+            "  Please consider imputing missing values.")
+  }
+
   # <-><-><-><->
 
   b1 <- make_grouping(data = data[ins, ], grouping = grouping)
 
-  R_i <- apply(data[ins, ][b1, tcol], MARGIN = 2, FUN = mean)
-  T_i <- apply(data[ins, ][!b1, tcol], MARGIN = 2, FUN = mean)
+  rr_i <- apply(data[ins, ][b1, tcol], MARGIN = 2, FUN = mean)
+  tt_i <- apply(data[ins, ][!b1, tcol], MARGIN = 2, FUN = mean)
 
-  ddelta_hat <- sum(abs(R_i - T_i))
-  f1 <- 100 * ddelta_hat / sum(R_i)
+  ddelta_hat <- sum(abs(rr_i - tt_i))
+  f1 <- 100 * ddelta_hat / sum(rr_i)
 
   return(f1)
 }
@@ -570,15 +972,7 @@ get_f1 <- function(data, ins, tcol, grouping) {
 #'
 #' The function \code{f2()} calculates the similarity factor \eqn{f_2}.
 #'
-#' @param use_EMA A character string indicating if the similarity factor
-#'   \eqn{f_2} should be calculated following the EMA guideline \dQuote{On the
-#'   investigation of bioequivalence} (\code{"yes"}, the default) or not
-#'   (\code{"no"}). A third option is \code{"ignore"}. If \code{use_EMA} is
-#'   \code{"yes"} or \code{"no"} the appropriate profile portion is determined
-#'   on the basis of the values of the parameter \code{bounds}. If it is
-#'   \code{"ignore"}, the complete profiles are used as specified by the
-#'   parameter \code{tcol}.
-#' @inheritParams bootstrap_f2
+#' @inheritParams f1
 #'
 #' @details Similarity of dissolution profiles is assessed using the similarity
 #' factor \eqn{f_2} according to the EMA guideline (European Medicines Agency
@@ -617,11 +1011,11 @@ get_f1 <- function(data, ins, tcol, grouping) {
 #' @return A list with the following elements is returned:
 #' \item{f2}{A numeric value representing the similarity factor \eqn{f_2}.}
 #' \item{Profile.TP}{A named numeric vector of the columns in \code{data}
-#'   specified by \code{tcol} and depending on the selection of \code{use_EMA}.
-#'   Given that the column names contain extractable numeric information,
-#'   e.g., specifying the testing time points of the dissolution profile, it
-#'   contains the corresponding values. Elements where no numeric information
-#'   could be extracted are \code{NA}.}
+#'   specified by \code{tcol} and depending on the selection of \code{use_ema}.
+#'   Given that the column names contain extractable numeric information, e.g.,
+#'   the testing time points of the dissolution profile, it contains the
+#'   corresponding numeric values. Elements where no numeric information could
+#'   be extracted are \code{NA}.}
 #'
 #' @references
 #' United States Food and Drug Administration (FDA). Guidance for industry:
@@ -636,9 +1030,8 @@ get_f1 <- function(data, ins, tcol, grouping) {
 #'
 #' European Medicines Agency (EMA), Committee for Medicinal Products for
 #' Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-#' CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-#' \url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-#' guideline-investigation-bioequivalence-rev1_en.pdf}
+#' \href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+#' CPMP/EWP/QWP/1401/98 Rev. 1}.
 #'
 #' @seealso \code{\link{f1}}.
 #'
@@ -646,17 +1039,18 @@ get_f1 <- function(data, ins, tcol, grouping) {
 #'
 #' @export
 
-f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
+f2 <- function(data, tcol, grouping, use_ema = "yes", bounds = c(1, 85),
+               nsf = c(1, 2)) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
-  if (!is.numeric(tcol) | length(tcol) < 3) {
+  if (!is.numeric(tcol) || length(tcol) < 3) {
     stop("The parameter tcol must be an integer vector of at least length 3.")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer vector.")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (sum(grepl("\\d", colnames(data[, tcol]))) < length(tcol)) {
@@ -675,16 +1069,16 @@ f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   if (!is.factor(data[, grouping])) {
     stop("The grouping variable's column in data must be a factor.")
   }
-  if (!(use_EMA %in% c("yes", "no", "ignore"))) {
-    stop("Please specify use_EMA either as \"yes\" or \"no\" or \"ignore\".")
+  if (!(use_ema %in% c("yes", "no", "ignore"))) {
+    stop("Please specify use_ema either as \"yes\" or \"no\" or \"ignore\".")
   }
-  if (!is.numeric(bounds) | length(bounds) != 2) {
-    stop("The paramter bounds must be a numeric vector of length 2.")
+  if (!is.numeric(bounds) || length(bounds) != 2) {
+    stop("The parameter bounds must be a numeric vector of length 2.")
   }
   if (bounds[1] > bounds[2]) {
     stop("Please specify bounds in the form c(lower limit, upper limit).")
   }
-  if (bounds[1] < 0 | bounds[2] > 100) {
+  if (bounds[1] < 0 || bounds[2] > 100) {
     stop("Please specify bounds in the range [0, 100].")
   }
 
@@ -702,7 +1096,7 @@ f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   b1 <- make_grouping(data = data, grouping = grouping)
 
   # Check if the two groups have the same number of observations. If  not so,
-  # and if the parameter use_EMA is either "no" or "ignore", adjust the data
+  # and if the parameter use_ema is either "no" or "ignore", adjust the data
   # frames in such a way that both groups to be compared will have the same
   # number of observations and that the number of observations per group
   # corresponds to the largest common value (lcv) between number of observations
@@ -710,15 +1104,15 @@ f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   # Note: an alternative would be to use the least common multiple.
   # Note that together with the data adjustment the b1 vector must be reset.
 
-  if (use_EMA == "yes" & sum(b1) != sum(!b1)) {
+  if (use_ema == "yes" && sum(b1) != sum(!b1)) {
     stop("The two groups to be compared must have the same number of ",
          "observations.")
   }
-  if (use_EMA %in% c("no", "ignore") & sum(b1) != sum(!b1)) {
-    warning("The two groups to be compared do not have the same number of ",
-            "observations. Thus, the number of rows is adjusted according ",
-            "to the largest common value between the number of observations ",
-            "per group.")
+  if (use_ema %in% c("no", "ignore") && sum(b1) != sum(!b1)) {
+    warning("The two groups to be compared do not have the same number of\n",
+            "  observations. Thus, the number of rows is adjusted according\n",
+            "  to the largest common value between the number of\n",
+            "  observations per group.")
 
     data <- balance_observations(data = data, groups = b1,
                                  n_obs = max(sum(b1), sum(!b1)))
@@ -736,15 +1130,15 @@ f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
   #   less than 10% from the second to the last time point.
 
   ok <- get_profile_portion(data = data, tcol = tcol, groups = b1,
-                            use_EMA = use_EMA, bounds = bounds)
+                            use_ema = use_ema, bounds = bounds, nsf = nsf)
 
-  if (use_EMA == "yes" & sum(ok) < 3) {
-    stop("According to EMA the profiles must comprise a minimum of 3 time ",
-         "points. The actual profiles comprise ", sum(ok), " points only.")
+  if (use_ema == "yes" && sum(ok) < 3) {
+    stop("According to EMA the profiles must comprise a minimum of 3 time\n",
+         "  points. The actual profiles comprise ", sum(ok), " points only.")
   }
   if (sum(ok) < 3) {
-    warning("The profiles should comprise a minimum of 3 time points. ",
-            "The actual profiles comprise ", sum(ok), " points only.")
+    warning("The profiles should comprise a minimum of 3 time points.\n",
+            "  The actual profiles comprise ", sum(ok), " points only.")
   }
 
   # <-><-><-><->
@@ -770,9 +1164,7 @@ f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
 #' The function \code{get_f2()} calculates the similarity factor \eqn{f_2} for
 #' the assessment of dissolution profiles.
 #'
-#' @param data A data frame with the dissolution profile data in wide format.
-#' @param ins A vector of indices generated regarding the grouping.
-#' @inheritParams bootstrap_f2
+#' @inheritParams get_f1
 #'
 #' @inherit f2 details references
 #'
@@ -781,12 +1173,13 @@ f2 <- function(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85)) {
 #' @seealso \code{\link{get_f1}}.
 #'
 #' @keywords internal
+#' @noRd
 
 get_f2 <- function(data, ins, tcol, grouping) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
-  if (!is.numeric(ins) | length(ins) < 3 | length(ins) > nrow(data)) {
+  if (!is.numeric(ins) || length(ins) < 3 || length(ins) > nrow(data)) {
     stop("The parameter ins must be an integer vector not longer than ",
          "nrow(data).")
   }
@@ -794,13 +1187,13 @@ get_f2 <- function(data, ins, tcol, grouping) {
     stop("The parameter ins must be an integer vector not longer than ",
          "nrow(data).")
   }
-  if (!is.numeric(tcol) | length(tcol) < 3) {
+  if (!is.numeric(tcol) || length(tcol) < 3) {
     stop("The parameter tcol must be an integer vector of at least length 3.")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer vector.")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (sum(grepl("\\d", colnames(data[, tcol]))) < length(tcol)) {
@@ -828,15 +1221,20 @@ get_f2 <- function(data, ins, tcol, grouping) {
     stop("The number of levels in column ", grouping, " differs from 2.")
   }
 
+  if (any(is.na(data[, tcol]))) {
+    message("Note that data contains NA/NaN values.\n",
+            "  Please consider imputing missing values.")
+  }
+
   # <-><-><-><->
 
   n <- length(tcol)
   b1 <- make_grouping(data = data[ins, ], grouping = grouping)
 
-  R_i <- apply(data[ins, ][b1, tcol], MARGIN = 2, FUN = mean)
-  T_i <- apply(data[ins, ][!b1, tcol], MARGIN = 2, FUN = mean)
+  rr_i <- apply(data[ins, ][b1, tcol], MARGIN = 2, FUN = mean)
+  tt_i <- apply(data[ins, ][!b1, tcol], MARGIN = 2, FUN = mean)
 
-  ddelta_hat <- 1 + sum((R_i - T_i)^2) / n
+  ddelta_hat <- 1 + sum((rr_i - tt_i)^2) / n
   f2 <- 50 * log10(100 / sqrt(ddelta_hat))
 
   return(f2)

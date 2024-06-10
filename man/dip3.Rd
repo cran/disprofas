@@ -43,7 +43,7 @@ library(T2EQ)
 }
 \references{
 Hoffelder, T., Goessl, R., and Wellek, S. Multivariate equivalence tests for
-use in pharmaceutical development. \emph{J Biopharm Stat} (2015)
+use in pharmaceutical development. \emph{J Biopharm Stat}. 2015;
 \strong{25}(3): 417-437.\cr
 \doi{10.1080/10543406.2014.920344}
 }

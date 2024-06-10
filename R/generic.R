@@ -40,7 +40,7 @@ plot.bootstrap_f2 <- function(x, ...) {
   plot(x$Boot, ...)
 
   cat("\nShah's lower 90% BCa confidence interval:\n",
-      formatC(as.numeric(x$ShahBCa_CI[1]), digits = digits),
+      formatC(as.numeric(x$Shah_BCa_CI[1]), digits = digits),
       "\n\n")
 
   invisible(x)
@@ -94,7 +94,7 @@ summary.bootstrap_f2 <- function(object, ...) {
   print(object$CI, ...)
 
   cat("\n\nShah's lower 90% BCa confidence interval:\n",
-      formatC(as.numeric(object$ShahBCa_CI[1]), digits = digits),
+      formatC(as.numeric(object$Shah_BCa_CI[1]), digits = digits),
       "\n\n")
 
   invisible(object)
@@ -149,21 +149,24 @@ print.bootstrap_f2 <- function(x, ...) {
 #' @export
 
 summary.mimcr <- function(object, ...) {
-  mf <- match.call(expand.dots = TRUE)
-  m <- match("digits", names(mf), 0L)
-
-  if (m == 0) {
-    digits <- getOption("digits")
-  } else {
-    digits <- mf[[m]]
-  }
 
   cat("\nResults of Model-Independent Multivariate Confidence Region (MIMCR)",
       "\napproach to assess equivalence of highly variable in-vitro",
       "\ndissolution profiles of two drug product formulations")
 
-  cat("\n\nDid the Newton-Raphson search converge?", c("No", "Yes")
-      [object$NR.CI$converged  + 1])
+  cat("\n\nDid the Newton-Raphson search converge? ")
+  if (!is.na(object[["NR.CI"]][["converged"]])) {
+    cat(c("No", "Yes")[object[["NR.CI"]][["converged"]]  + 1])
+  } else {
+    cat("NA")
+  }
+
+  cat("\nAre the points located on the confidence region boundary (CRB)? ")
+  if (!is.na(object[["NR.CI"]][["points.on.crb"]])) {
+    cat(c("No", "Yes")[object[["NR.CI"]][["points.on.crb"]]  + 1])
+  } else {
+    cat("NA")
+  }
 
   cat("\n\nParameters (general):",
       "\nSignificance level:                  ",
@@ -173,7 +176,7 @@ summary.mimcr <- function(object, ...) {
       "\nDegrees of freedom (2):              ",
       formatC(unname(object[["Parameters"]]["df2"]), ...),
       "\nMahalanobis distance (MD):           ",
-      formatC(unname(object[["Parameters"]]["DM"]), ...),
+      formatC(unname(object[["Parameters"]]["dm"]), ...),
       "\n(F) scaling factor K:                ",
       formatC(unname(object[["Parameters"]]["K"]), ...),
       "\n(MD) scaling factor k:               ",
@@ -282,7 +285,7 @@ plot.plot_mztia <- function(x, ...) {
 
 print.plot_mztia <- function(x, ...) {
 
-  plot(x$Graph, ...)
+  plot.plot_mztia(x = x, ...)
 
   invisible(x)
 }
@@ -313,14 +316,6 @@ print.plot_mztia <- function(x, ...) {
 #' @export
 
 summary.mztia <- function(object, ...) {
-  mf <- match.call(expand.dots = TRUE)
-  m <- match("digits", names(mf), 0L)
-
-  if (m == 0) {
-    digits <- getOption("digits")
-  } else {
-    digits <- mf[[m]]
-  }
 
   cat("\nResults of Martinez & Zhao Tolerance Interval (TI) Approach")
   cat("\n(TI limits calculated at each time point of the",

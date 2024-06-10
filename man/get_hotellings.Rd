@@ -7,29 +7,37 @@
 get_hotellings(m1, m2, signif)
 }
 \arguments{
-\item{m1}{A matrix with the data of the reference group.}
+\item{m1}{A matrix with the data of the reference group, e.g. a matrix
+representing dissolution profiles, i.e. with rows for the different dosage
+units and columns for the different time points, or a matrix for the
+different model parameters (columns) of different dosage units (rows).}
 
-\item{m2}{A matrix with the same dimensions as matrix \code{m1}, with the
-data of the test group.}
+\item{m2}{A matrix with the same dimensions as matrix \code{m1} with the
+data of the test group having the characteristics as the data of matrix
+\code{m1}.}
 
 \item{signif}{A positive numeric value between \code{0} and \code{1}
-specifying the significance level. The default value is \code{0.05}.}
+that specifies the significance level. The default value is \code{0.05}.}
 }
 \value{
 A list with the following elements is returned:
-\item{Parameters}{Parameters determined for the estimation of
-  Hotelling's \eqn{T^2}.}
+\item{Parameters}{Parameters determined for the estimation of Hotelling's
+  \eqn{T^2}.}
 \item{S.pool}{Pooled variance-covariance matrix.}
 \item{covs}{A list with the elements \code{S.b1} and \code{S.b2}, i.e. the
   variance-covariance matrices of the reference and the test group,
   respectively.}
 \item{means}{A list with the elements \code{mean.b1}, \code{mean.b2} and
-  \code{mean.diff}, i.e. the average profile values (for each time point) of
-  the reference and the test group and the corresponding differences of
-  the averages, respectively.}
+  \code{mean.diff}, i.e. the average dissolution profile values (for each
+  time point) or the average model parameters of the reference and the test
+  group and the corresponding differences, respectively.}
+\item{CI}{A list with the elements \code{Hotelling} and \code{Bonferroni},
+  i.e. data frames with columns \code{LCL} and \code{UCL} for the lower
+  and upper \eqn{(1 - \alpha)100\%} confidence limits, respectively, and
+  rows for each time point or model parameter.}
 
 The \code{Parameters} element contains the following information:
-\item{DM}{Mahalanobis distance of the samples.}
+\item{dm}{Mahalanobis distance of the samples.}
 \item{df1}{Degrees of freedom (number of variables or time points).}
 \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
 \item{alpha}{Provided significance level.}
@@ -40,41 +48,79 @@ The \code{Parameters} element contains the following information:
 \item{T2}{Hotelling's \eqn{T^2} statistic (\eqn{F}-distributed).}
 \item{F}{Observed \eqn{F} value.}
 \item{F.crit}{Critical \eqn{F} value.}
+\item{t.crit}{Critical \eqn{t} value.}
 \item{p.F}{\eqn{p} value for Hotelling's \eqn{T^2} test statistic.}
 }
 \description{
 The function \code{get_hotellings()} estimates the parameters for Hotelling's
-two-sample \eqn{T^2} statistic for small samples.
+two-sample \eqn{T^2} statistic for small samples. \strong{Note that the
+function \code{get_hotellings()} is deprecated}. Upon the introduction of
+the new function \code{get_T2_one()} it was renamed to \code{get_T2_two()}.
+Please use the new function \code{get_T2_two()} instead of the obsolete
+function \code{get_hotellings()}.
 }
 \details{
 The two-sample Hotelling's \eqn{T^2} test statistic is given by
 
-\deqn{T^2 = \left( \bar{\bm{x}}_1 - \bar{\bm{x}}_2 \right)^{\top}
-  \left( \bm{S}_p \left( \frac{1}{n_1} + \frac{1}{n_2} \right) \right)^{-1}
-  \left( \bar{\bm{x}}_1 - \bar{\bm{x}}_2 \right) .}{%
-  T^2 = (x.bar_1 - x.bar_2)^{\top} (S_p (1 / n_1 + 1 / n_2))^{-1}
-  (x.bar_1 - x.bar_2) .}
+\deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x}_T - \bm{x}_R
+  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) ,}{%
+  (n_T n_R) / (n_T + n_R) * (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) ,}
 
-For large samples, this test statistic will be approximately chi-square
-distributed with \eqn{p} degrees of freedom. However, this approximation
-does not take into account the variation due to the variance-covariance
-matrix estimation. Therefore, Hotelling's \eqn{T^2} statistic
-is transformed into an \eqn{F}-statistic using the expression
+where \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R} are the vectors of the
+sample means of the test (\eqn{T}) and reference (\eqn{R}) group, e.g.
+vectors of the average dissolution per time point or of the average model
+parameters, \eqn{n_T} and \eqn{n_R} are the numbers of observations of the
+reference and the test group, respectively (i.e. the number of rows in
+matrices \code{m1} and \code{m2} handed over to the \code{get_T2_two()}
+function), and \eqn{\bm{S}_{pooled}}{S_{pooled}} is the pooled
+variance-covariance matrix which is calculated by
 
-\deqn{F = \frac{n_1 + n_2 - p - 1}{(n_1 + n_2 - 2) p} T^2 ,}{%
-  F = (n_1 + n_2 - p - 1) / ((n_1 + n_2 - 2) p) T^2 ,}
+\deqn{\bm{S}_{pooled} = \frac{(n_R - 1) \bm{S}_R + (n_T - 1) \bm{S}_T}{%
+  n_R + n_T - 2} ,}{S_{pooled} = ((n_R - 1) S_R + (n_T - 1) S_T) /
+  (n_R + n_T - 2) ,}
 
-where \eqn{n_1} and \eqn{n_2} are the sample sizes of the two samples being
-compared and \eqn{p} is the number of variables.
+where \eqn{\bm{S}_R}{S_R} and \eqn{\bm{S}_T}{S_T} are the estimated
+variance-covariance matrices which are calculated from the matrices of the
+two groups being compared, i.e. \code{m1} and \code{m2}. The matrix
+\eqn{\bm{S}_{pooled}^{-1}}{S_{pooled}^{-1}} is the inverted
+variance-covariance matrix. As the number of columns of matrices \code{m1}
+and \code{m2} increases, and especially as the correlation between the
+columns increases, the risk increases that the pooled variance-covariance
+matrix \eqn{\bm{S}_{pooled}}{S_{pooled}} is ill-conditioned or even singular
+and thus cannot be inverted. The term
 
-Under the null hypothesis, \eqn{H_0: \bm{\mu}_1 = \bm{\mu}_2}{%
-H_0: \mu_1 = \mu_2}, this \eqn{F}-statistic will be \eqn{F}-distributed
-with \eqn{p} and \eqn{n_1 + n_2 - p} degrees of freedom. \eqn{H_0} is
-rejected at significance level \eqn{\alpha} if the \eqn{F}-value exceeds the
-critical value from the \eqn{F}-table evaluated at \eqn{\alpha}, i.e.
-\eqn{F > F_{p, n_1 + n_2 - p - 1, \alpha}}. The null hypothesis is satisfied
+\deqn{D_M = \sqrt{ \left( \bm{x}_T - \bm{x}_R \right)^{\top}
+  \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) }}{%
+  D_M = sqrt((x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R))}
+
+is the Mahalanobis distance which is used to measure the difference between
+two multivariate means. For large samples, \eqn{T^2} is approximately
+chi-square distributed with \eqn{p} degrees of freedom, where \eqn{p} is
+the number of variables, i.e. the number of dissolution profile time points
+or the number of model parameters. In terms of the Mahalanobis distance,
+Hotelling's \eqn{T^2} statistic can be expressed has
+
+\deqn{\frac{n_T n_R}{n_T + n_R} \; D_M^2 = k \; D_M^2 .}
+
+To transform the Hotelling's \eqn{T^2} statistic into an \eqn{F}-statistic,
+a conversion factor is necessary, i.e.
+
+\deqn{K = k \; \frac{n_T + n_R - p - 1}{\left( n_T + n_R - 2 \right) p} .}{%
+  k (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) .}
+
+With this transformation, the following test statistic can be applied:
+
+\deqn{K \; D_M^2 \leq F_{p, n_T + n_R - p - 1, \alpha} .}{%
+  K D_M^2 \leq F_{p, n_T + n_R - p - 1, \alpha} .}
+
+Under the null hypothesis, \eqn{H_0: \bm{\mu}_T = \bm{\mu}_R}{%
+H_0: \mu_T = \mu_R}, this \eqn{F}-statistic is \eqn{F}-distributed with
+\eqn{p} and \eqn{n_T + n_R - p - 1} degrees of freedom. \eqn{H_0} is
+rejected at significance level \eqn{\alpha} if the \eqn{F}-value exceeds
+the critical value from the \eqn{F}-table evaluated at \eqn{\alpha}, i.e.
+\eqn{F > F_{p, n_T + n_R - p - 1, \alpha}}. The null hypothesis is satisfied
 if, and only if, the population means are identical for all variables. The
-alternative is that at least one pair of these means is different.
+alternative is that at least one pair of these means is different. \cr
 
 The following assumptions concerning the data are made:
 \itemize{
@@ -83,35 +129,46 @@ The following assumptions concerning the data are made:
   sub-populations.
 \item The data from both populations have common variance-covariance matrix
   \eqn{\Sigma}.
-\item The subjects from both populations are independently sampled.
-\item Both populations are normally distributed.
+\item The elements from both populations are independently sampled, i.e.
+  the data values are independent.
+\item Both populations are multivariate normally distributed.
 }
+
+\strong{Confidence intervals}: \cr
+Confidence intervals for the mean differences at each time point or
+confidence intervals for the mean differences between the parameter
+estimates of the reference and the test group are calculated by aid of the
+formula
+
+\deqn{\left( \bm{x}_T - \bm{x}_R \right) \pm \sqrt{\frac{1}{K} \;
+  F_{p, n_T + n_R - p - 1, \alpha} \; \bm{s}_{pooled}} ,}{%
+  (x_T - x_R) \pm sqrt(1 / K F_{p, n_T + n_R - p - 1, \alpha} s_{pooled}) ,}
+
+where \eqn{\bm{s}_{pooled}}{s_{pooled}} is the vector of the diagonal
+elements of the pooled variance-covariance matrix
+\eqn{\bm{S}_{pooled}}{S_{pooled}}. With \eqn{(1 - \alpha)100\%} confidence,
+this interval covers the respective linear combination of the differences
+between the means of the two sample groups. If not the linear combination
+of the variables is of interest but rather the individual variables, then
+the Bonferroni corrected confidence intervals should be used instead which
+are given by the expression
+
+\deqn{\left( \bm{x}_T - \bm{x}_R \right) \pm
+  t_{n_T + n_R - 2, \frac{\alpha}{2 p}} \;
+  \sqrt{\frac{1}{k} \; \bm{s}_{pooled}} .}{%
+  (x_T - x_R) \pm t_{n_T + n_R - 2, \alpha / (2 p)} sqrt(1 / k s_{pooled}) .}
 }
 \examples{
-# Dissolution data of one reference batch and one test batch of n = 6
-# tablets each:
-str(dip1)
-
-# 'data.frame':	12 obs. of  10 variables:
-# $ type  : Factor w/ 2 levels "R","T": 1 1 1 1 1 1 2 2 2 2 ...
-# $ tablet: Factor w/ 6 levels "1","2","3","4",..: 1 2 3 4 5 6 1 2 3 4 ...
-# $ t.5   : num  42.1 44.2 45.6 48.5 50.5 ...
-# $ t.10  : num  59.9 60.2 55.8 60.4 61.8 ...
-# $ t.15  : num  65.6 67.2 65.6 66.5 69.1 ...
-# $ t.20  : num  71.8 70.8 70.5 73.1 72.8 ...
-# $ t.30  : num  77.8 76.1 76.9 78.5 79 ...
-# $ t.60  : num  85.7 83.3 83.9 85 86.9 ...
-# $ t.90  : num  93.1 88 86.8 88 89.7 ...
-# $ t.120 : num  94.2 89.6 90.1 93.4 90.8 ...
-
 # Estimation of the parameters for Hotelling's two-sample T2 statistic
 # (for small samples)
-res <-
-  get_hotellings(m1 = as.matrix(dip1[dip1$type == "R", c("t.15", "t.90")]),
-                 m2 = as.matrix(dip1[dip1$type == "T", c("t.15", "t.90")]),
-                 signif = 0.1)
-res$S.pool
-res$Parameters
+\dontrun{
+  res <-
+    get_hotellings(m1 = as.matrix(dip1[dip1$type == "R", c("t.15", "t.90")]),
+                   m2 = as.matrix(dip1[dip1$type == "T", c("t.15", "t.90")]),
+                   signif = 0.1)
+  res$S.pool
+  res$Parameters
+}
 
 # Expected results in res$S.pool
 #          t.15     t.90
@@ -134,5 +191,6 @@ W.A., Eds., Techniques of Statistical Analysis, McGraw Hill, New York,
 111-184.
 }
 \seealso{
-\code{\link{mimcr}}, \code{\link{get_sim_lim}}.
+\code{\link{get_T2_one}}, \code{\link{get_sim_lim}},
+\code{\link{mimcr}}.
 }

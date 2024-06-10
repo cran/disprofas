@@ -1,14 +1,14 @@
 context("Get similarity limits")
 
 test_that("get_sim_lim_succeeds", {
-  hs <- get_hotellings(m1 = as.matrix(dip1[dip1$type == "R", 3:10]),
-                       m2 = as.matrix(dip1[dip1$type == "T", 3:10]),
-                       signif = 0.1)
+  hs <- get_T2_two(m1 = as.matrix(dip1[dip1$type == "R", 3:10]),
+                   m2 = as.matrix(dip1[dip1$type == "T", 3:10]),
+                   signif = 0.1)
   t_res <- get_sim_lim(mtad = 10, hs)
 
   # <-><-><-><->
 
-  expect_equivalent(signif(t_res["DM"], 7), 26.48562)
+  expect_equivalent(signif(t_res["dm"], 7), 26.48562)
   expect_equivalent(round(t_res["df1"], 0), 8)
   expect_equivalent(round(t_res["df2"], 0), 3)
   expect_equivalent(signif(t_res["K"], 7), 0.1125000)
@@ -24,9 +24,9 @@ test_that("get_sim_lim_succeeds", {
 })
 
 test_that("get_sim_lim_fails", {
-  hs <- get_hotellings(m1 = as.matrix(dip1[dip1$type == "R", 3:10]),
-                       m2 = as.matrix(dip1[dip1$type == "T", 3:10]),
-                       signif = 0.1)
+  hs <- get_T2_two(m1 = as.matrix(dip1[dip1$type == "R", 3:10]),
+                   m2 = as.matrix(dip1[dip1$type == "T", 3:10]),
+                   signif = 0.1)
   hs1 <- hs
   names(hs1) <- c("Variables", "Spool", "covs", "means")
 
@@ -34,10 +34,10 @@ test_that("get_sim_lim_fails", {
 
   expect_error(
     get_sim_lim(mtad = 10, lhs = hs1),
-    "lhs must be a list returned by get_hotellings")
+    "lhs must be a list returned by get_T2_two")
   expect_error(
     get_sim_lim(mtad = 10, lhs = hs[[1]]),
-    "lhs must be a list returned by get_hotellings")
+    "lhs must be a list returned by get_T2_two")
   expect_error(
     get_sim_lim(mtad = -1, lhs = hs),
     "specify mtad")

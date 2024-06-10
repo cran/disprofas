@@ -21,6 +21,21 @@ test_that("get_f1_results_match", {
   expect_equal(signif(res5, 7), 13.94996)
 })
 
+test_that("get_f1_sends_message", {
+  t_dat <- dip2[dip2$batch %in% c("b0", "b1"), ]
+  t_dat[1, "t.30"] <- NA
+  t_dat[12, "t.60"] <- NA
+  t_dat[13, "t.90"] <- NaN
+  t_dat[24, "t.180"] <- NaN
+
+  # <-><-><-><->
+
+  res <- expect_message(get_f1(data = t_dat,
+                               ins = 1:24, tcol = 5:8, grouping = "batch"),
+                        "data contains NA/NaN values")
+  expect_equal(res, NA_real_)
+})
+
 test_that("get_f1_fails", {
   tmp0 <- dip2
   tmp0$t.30 <- as.factor(tmp0$t.30)

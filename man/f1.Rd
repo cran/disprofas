@@ -4,48 +4,57 @@
 \alias{f1}
 \title{Dissimilarity factor f1 for dissolution data}
 \usage{
-f1(data, tcol, grouping, use_EMA = "yes", bounds = c(1, 85))
+f1(data, tcol, grouping, use_ema = "yes", bounds = c(1, 85), nsf = c(1, 2))
 }
 \arguments{
 \item{data}{A data frame with the dissolution profile data in wide format.}
 
-\item{tcol}{A vector of indices specifying the columns in \code{data} that
-contain the \% release values. The length of \code{tcol} must be three or
-longer.}
+\item{tcol}{A vector of indices that specifies the columns in \code{data}
+that contain the \% release values. The length of \code{tcol} must be
+three or longer.}
 
-\item{grouping}{A character string specifying the column in \code{data} that
-contains the group names (i.e. a factorial variable, e.g., for the
+\item{grouping}{A character string that specifies the column in \code{data}
+that contains the group names (i.e. a factorial variable, e.g., for the
 differentiation of batches or formulations of a drug product).}
 
-\item{use_EMA}{A character string indicating if the dissimilarity factor
-\eqn{f_1} should be calculated following the EMA guideline \dQuote{On
-the investigation of bioequivalence} (\code{"yes"}, the default) or not
-(\code{"no"}), i.e. the recommendations concerning the similarity factor
-\eqn{f_2}. A third option is \code{"ignore"}. If \code{use_EMA} is
-\code{"yes"} or \code{"no"} the appropriate profile portion is determined
-on the basis of the values of the parameter \code{bounds}. If it is
-\code{"ignore"}, the complete profiles are used as specified by the
-parameter \code{tcol}.}
+\item{use_ema}{A character string indicating whether the dissimilarity
+factor \eqn{f_1} should be calculated following the EMA guideline
+\dQuote{On the investigation of bioequivalence} (\code{"yes"}, the
+default) or not (\code{"no"}), i.e. the recommendations concerning the
+similarity factor \eqn{f_2}. A third option is \code{"ignore"}. If
+\code{use_ema} is \code{"yes"} or \code{"no"} the appropriate profile
+portion is determined on the basis of the values of the parameter
+\code{bounds}. If it is \code{"ignore"}, the complete profiles are used
+as specified by the parameter \code{tcol}.}
 
-\item{bounds}{A numeric vector of the form \code{c(lower, upper)} specifying
-the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-drug release given that \code{use_EMA} is \code{"no"}. The default is
-\code{c(1, 85)}. Mean \% release values of any of the two groups being
+\item{bounds}{A numeric vector of the form \code{c(lower, upper)} that
+specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+the \% drug release given that \code{use_ema} is \code{"no"}. The default
+is \code{c(1, 85)}. Mean \% release values of any of the two groups being
 compared that are smaller than or equal to the lower bound are ignored and
 only the first mean \% release value that is greater than or equal to the
 upper bound is included while all the subsequent values are ignored. If
-\code{use_EMA} is \code{"yes"} the \code{bounds} are \code{c(1, 85)} per
-definition.}
+\code{use_ema} is \code{"yes"} the \code{bounds} are \code{c(0, 85)} per
+definition. If \code{use_ema} is \code{"ignore"} the \code{bounds} are
+disregarded.}
+
+\item{nsf}{A vector of positive integers that specify the \dQuote{number
+of significant figures} (nsf) of the corresponding values of the
+\code{bounds} parameter. It must thus have the same length as the
+\code{bounds} parameter. Before the \% release values are compared with
+the limits that are specified by the \code{bounds} parameter, they are
+rounded to the corresponding number of significant figures as specified
+by the \code{nsf} parameter.}
 }
 \value{
 A list with the following elements is returned:
 \item{f1}{A numeric value representing the similarity factor \eqn{f_1}.}
 \item{Profile.TP}{A named numeric vector of the columns in \code{data}
-  specified by \code{tcol} and depending on the selection of \code{use_EMA}.
-  Given that the column names contain extractable numeric information,
-  e.g., specifying the testing time points of the dissolution profile, it
-  contains the corresponding values. Elements where no numeric information
-  could be extracted are \code{NA}.}
+  specified by \code{tcol} and depending on the selection of \code{use_ema}.
+  Given that the column names contain extractable numeric information, e.g.,
+  the testing time points of the dissolution profile, it contains the
+  corresponding numeric values. Elements where no numeric information could
+  be extracted are \code{NA}.}
 }
 \description{
 The function \code{f1()} calculates the dissimilarity factor \eqn{f_1}.
@@ -90,23 +99,7 @@ In this equation
 }
 }
 \examples{
-# Dissolution data of one reference batch and one test batch of n = 6
-# tablets each:
-str(dip1)
-
-# 'data.frame':	12 obs. of  10 variables:
-# $ type  : Factor w/ 2 levels "R","T": 1 1 1 1 1 1 2 2 2 2 ...
-# $ tablet: Factor w/ 6 levels "1","2","3","4",..: 1 2 3 4 5 6 1 2 3 4 ...
-# $ t.5   : num  42.1 44.2 45.6 48.5 50.5 ...
-# $ t.10  : num  59.9 60.2 55.8 60.4 61.8 ...
-# $ t.15  : num  65.6 67.2 65.6 66.5 69.1 ...
-# $ t.20  : num  71.8 70.8 70.5 73.1 72.8 ...
-# $ t.30  : num  77.8 76.1 76.9 78.5 79 ...
-# $ t.60  : num  85.7 83.3 83.9 85 86.9 ...
-# $ t.90  : num  93.1 88 86.8 88 89.7 ...
-# $ t.120 : num  94.2 89.6 90.1 93.4 90.8 ...
-
-# Use of defaults, i.e. 'use_EMA = "yes"', 'bounds = c(1, 85)'
+# Use of defaults, i.e. 'use_ema = "yes"', 'bounds = c(1, 85)'
 # Comparison always involves only two groups.
 f1(data = dip1, tcol = 3:10, grouping = "type")
 
@@ -117,9 +110,9 @@ f1(data = dip1, tcol = 3:10, grouping = "type")
 # t.5 t.10 t.15 t.20 t.30 t.60 t.90
 #   5   10   15   20   30   60   90
 
-# Use of 'use_EMA = "no"', 'bounds = c(5, 80)'
-f1(data = dip1, tcol = 3:10, grouping = "type", use_EMA = "no",
-   bounds = c(5, 80))
+# Use of 'use_ema = "no"', 'bounds = c(5, 80)'
+f1(data = dip1, tcol = 3:10, grouping = "type", use_ema = "no",
+   bounds = c(5, 80), nsf = c(1, 2))
 
 # $f1
 # [1] 21.333
@@ -128,9 +121,9 @@ f1(data = dip1, tcol = 3:10, grouping = "type", use_EMA = "no",
 # t.5 t.10 t.15 t.20 t.30 t.60
 #   5   10   15   20   30   60
 
-# Use of 'use_EMA = "no"', 'bounds = c(1, 95)'
-f1(data = dip1, tcol = 3:10, grouping = "type", use_EMA = "no",
-   bounds = c(1, 95))
+# Use of 'use_ema = "no"', 'bounds = c(1, 95)'
+f1(data = dip1, tcol = 3:10, grouping = "type", use_ema = "no",
+   bounds = c(1, 95), nsf = c(1, 2))
 
 # $f1
 # [1] 16.22299
@@ -140,20 +133,22 @@ f1(data = dip1, tcol = 3:10, grouping = "type", use_EMA = "no",
 #   5    10    15    20    30    60    90   120
 
 # In this case, the whole profiles are used. The same result is obtained
-# when setting 'use_EMA = "ignore"' (ignoring values passed to 'bounds').
-f1(data = dip1, tcol = 3:10, grouping = "type", use_EMA = "ignore")
+# when setting 'use_ema = "ignore"' (ignoring values passed to 'bounds').
+f1(data = dip1, tcol = 3:10, grouping = "type", use_ema = "ignore")
 
 # Passing in a data frame with a grouping variable with a number of levels that
 # differs from two produces an error.
-tmp <- rbind(dip1,
-             data.frame(type = "T2",
-                        tablet = as.factor(1:6),
-                        dip1[7:12, 3:10]))
+\dontrun{
+  tmp <- rbind(dip1,
+               data.frame(type = "T2",
+                          tablet = as.factor(1:6),
+                          dip1[7:12, 3:10]))
 
-tryCatch(
-  f1(data = tmp, tcol = 3:10, grouping = "type"),
-  error = function(e) message(e),
-  finally = message("\nMaybe you want to remove unesed levels in data."))
+  tryCatch(
+    f1(data = tmp, tcol = 3:10, grouping = "type"),
+    error = function(e) message(e),
+    finally = message("\nMaybe you want to remove unesed levels in data."))
+}
 
 # Error in f1(data = tmp, tcol = 3:10, grouping = "type") :
 #   The number of levels in column type differs from 2.
@@ -171,9 +166,8 @@ testing, and \emph{in vivo} bioequivalence documentation (SUPAC-IR). 1995.\cr
 
 European Medicines Agency (EMA), Committee for Medicinal Products for
 Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-\url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-guideline-investigation-bioequivalence-rev1_en.pdf}
+\href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+CPMP/EWP/QWP/1401/98 Rev. 1}.
 }
 \seealso{
 \code{\link{f2}}.

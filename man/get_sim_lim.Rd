@@ -7,18 +7,19 @@
 get_sim_lim(mtad, lhs)
 }
 \arguments{
-\item{mtad}{A numeric value specifying the \dQuote{maximum tolerable average
-difference} (MTAD) of the profiles of two formulations at all time points
-(in \%). The default value is \code{10}. It determines the size of the
-similarity limit \eqn{\bm{d}_g}{d_g}.}
+\item{mtad}{A numeric value that specifies the \dQuote{maximum tolerable
+average difference} (MTAD) of the profiles of two formulations at all time
+points (in \%). The default value is \code{10}. It determines the size of
+the similarity limit \eqn{\bm{d}_g}{d_g} (see the details section for more
+information).}
 
 \item{lhs}{A list of the estimates of Hotelling's two-sample \eqn{T^2}
 statistic for small samples as returned by the function
-\code{\link{get_hotellings}()}.}
+\code{\link{get_T2_two}()}.}
 }
 \value{
 A vector containing the following information is returned:
-\item{DM}{The Mahalanobis distance of the samples.}
+\item{dm}{The Mahalanobis distance of the samples.}
 \item{df1}{Degrees of freedom (number of variables or time points).}
 \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
 \item{alpha}{The provided significance level.}
@@ -58,16 +59,21 @@ to this method, a multivariate statistical distance, called Mahalanobis
 distance, is used to measure the difference between two multivariate means.
 This distance measure is calculated as
 
-\deqn{D_M = \sqrt{ \left( \bm{x_T} - \bm{x_R} \right)^{\top}
-  \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right)} ,}{%
+\deqn{D_M = \sqrt{ \left( \bm{x}_T - \bm{x}_R \right)^{\top}
+  \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right)} ,}{%
   D_M = sqrt((x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R)) ,}
 
-where \eqn{\bm{S}_{pooled} = \frac{\left( \bm{S}_T + \bm{S}_R \right)}{2}}{%
-S_{pooled} = (S_T + S_R) / 2} is the sample variance-covariance matrix
-pooled across the batches, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R} are
-the vectors of the sample means for the test (\eqn{T}) and reference
+where \eqn{\bm{S}_{pooled}} is the sample variance-covariance matrix pooled
+across the comparative groups, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R}
+are the vectors of the sample means for the test (\eqn{T}) and reference
 (\eqn{R}) profiles, and \eqn{\bm{S}_T}{S_T} and \eqn{\bm{S}_R}{x_R} are the
-variance-covariance matrices of the test and reference profiles.
+variance-covariance matrices of the test and reference profiles. The pooled
+variance-covariance matrix \eqn{\bm{S}_{pooled}}{S_{pooled}} is calculated
+by
+
+\deqn{\bm{S}_{pooled} = \frac{(n_R - 1) \bm{S}_R + (n_T - 1) \bm{S}_T}{%
+  n_R + n_T - 2} .}{S_{pooled} = ((n_R - 1) S_R + (n_T - 1) S_T) /
+  (n_R + n_T - 2) .}
 
 In order to determine the similarity limits in terms of the MSD, i.e. the
 Mahalanobis distance between the two multivariate means of the dissolution
@@ -82,27 +88,31 @@ where \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p} vector with all
 e.g., \eqn{15}\%, for the maximum tolerable difference at all time points,
 and \eqn{p} is the number of sampling points. By assuming that the data
 follow a multivariate normal distribution, the 90\% confidence region
-(\eqn{CR}) bounds for the true difference between the mean vectors,
+(\eqn{\textit{CR}}) bounds for the true difference between the mean vectors,
 \eqn{\bm{\mu}_T - \bm{\mu}_R}{\mu_T - \mu_R}, can be computed for the
 resultant vector \eqn{\bm{\mu}}{\mu} to satisfy the following condition:
 
-\deqn{\bm{CR} = K \left( \bm{\mu} - \left( \bm{x_T} - \bm{x_R} \right)
-  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} - \left( \bm{x_T} -
-  \bm{x_R} \right) \right) \leq F_{p, n_T + n_R - p - 1, 0.9} ,}{%
+\deqn{\bm{\textit{CR}} = K \left( \bm{\mu} - \left( \bm{x}_T -
+  \bm{x}_R \right) \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} -
+  \left( \bm{x}_T - \bm{x}_R \right) \right) \leq
+  F_{p, n_T + n_R - p - 1, 0.9} ,}{%
   CR = sqrt((\mu - (x_T - x_R))^{\top} S_{pooled}^{-1} (\mu - (x_T - x_R)))
   \leq F_{p, n_T + n_R - p - 1, 0.9} ,}
 
 where \eqn{K} is the scaling factor that is calculated as
 
-\deqn{K = \frac{n_T n_R}{n_T + n_R} \cdot \frac{n_T + n_R - p - 1}{
-  \left( n_T + n_R - 2 \right) \cdot p} ,}{%
-  (n_T n_R) / (n_T + n_R) * (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
+\deqn{K = \frac{n_T n_R}{n_T + n_R} \; \frac{n_T + n_R - p - 1}{
+  \left( n_T + n_R - 2 \right) p} ,}{%
+  (n_T n_R) / (n_T + n_R) (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
 
 and \eqn{F_{p, n_T + n_R - p - 1, 0.9}} is the \eqn{90^{th}} percentile of
 the \eqn{F} distribution with degrees of freedom \eqn{p} and
-\eqn{n_T + n_R - p - 1}. It is obvious that \eqn{(n_T + n_R)} must be greater
-than \eqn{(p + 1)}. The formula for \eqn{CR} gives a \eqn{p}-variate 90\%
-confidence region for the possible true differences. \cr
+\eqn{n_T + n_R - p - 1}, where \eqn{n_T} and \eqn{n_R} are the number of
+observations of the reference and the test group, respectively, and \eqn{p}
+is the number of sampling or time points, as mentioned already. It is
+obvious that \eqn{(n_T + n_R)} must be greater than \eqn{(p + 1)}. The
+formula for \eqn{\textit{CR}} gives a \eqn{p}-variate 90\% confidence region
+for the possible true differences. \cr
 }
 
 \section{T2 test for equivalence}{
@@ -117,10 +127,10 @@ equivalence is taken if the \eqn{p} value of this test statistic is smaller
 than the pre-specified significance level \eqn{\alpha}, i.e. if
 \eqn{p < \alpha}. The \eqn{p} value is calculated by aid of the formula
 
-\deqn{p = F_{p, n_T + n_R - p - 1, ncp, \alpha}
+\deqn{p = F_{p, n_T + n_R - p - 1, ncp, \alpha} \;
   \frac{n_T + n_R - p - 1}{(n_T + n_R - 2) p} T^2 ,}{%
   p = F_{p, n_T + n_R - p - 1, ncp, \alpha}
-  (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) T^2 ,}
+  (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) \; T^2 ,}
 
 where \eqn{\alpha} is the significance level and \eqn{ncp} is the so-called
 \dQuote{\emph{non-centrality parameter}} that is calculated by
@@ -128,45 +138,31 @@ where \eqn{\alpha} is the significance level and \eqn{ncp} is the so-called
 \deqn{\frac{n_T n_R}{n_T + n_R} \left( D_M^{max} \right)^2 .}{%
   (n_T n_R) / (n_T + n_R) (D_M^{max})^2 .}
 
-The test statistic being used is Hotelling's \eqn{T^2} that is given as
+The test statistic being used is Hotelling's two-sample \eqn{T^2} test that
+is given as
 
-\deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x_T} - \bm{x_R}
-  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right) .}{%
-  (n_T n_R) / (n_T + n_R) * (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) .}
+\deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x}_T - \bm{x}_R
+  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) .}{%
+  (n_T n_R) / (n_T + n_R) (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) .}
 
-As mentioned elsewhere, \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p}
-vector with all \eqn{p} elements equal to an empirically defined limit
-\eqn{d_g}. Thus, the components of the vector \eqn{\bm{d}_g}{d_g} can be
-interpreted as upper bound for a kind of \dQuote{\emph{average}} allowed
-difference between test and reference profiles, the \dQuote{\emph{global
-similarity limit}}. Since the EMA requires that \dQuote{similarity acceptance
-limits should be pre-defined and justified and not be greater than a 10\%
-difference}, it is recommended to use 10\%, not 15\% as proposed by Tsong
-et al. (1996), for the maximum tolerable difference at all time points.
+As mentioned in paragraph \dQuote{Similarity limits in terms of MSD},
+\eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p} vector with all \eqn{p}
+elements equal to an empirically defined limit \eqn{d_g}. Thus, the
+components of the vector \eqn{\bm{d}_g}{d_g} can be interpreted as upper
+bound for a kind of \dQuote{\emph{average}} allowed difference between test
+and reference profiles, the \dQuote{\emph{global similarity limit}}.
+Since the EMA requires that \dQuote{similarity acceptance limits should be
+pre-defined and justified and not be greater than a 10\% difference}, it is
+recommended to use 10\%, not 15\% as proposed by Tsong et al. (1996), for
+the maximum tolerable difference at all time points.
 }
 
 \examples{
-# Dissolution data of one reference batch and one test batch of n = 6
-# tablets each:
-str(dip1)
-
-# 'data.frame':	12 obs. of  10 variables:
-# $ type  : Factor w/ 2 levels "R","T": 1 1 1 1 1 1 2 2 2 2 ...
-# $ tablet: Factor w/ 6 levels "1","2","3","4",..: 1 2 3 4 5 6 1 2 3 4 ...
-# $ t.5   : num  42.1 44.2 45.6 48.5 50.5 ...
-# $ t.10  : num  59.9 60.2 55.8 60.4 61.8 ...
-# $ t.15  : num  65.6 67.2 65.6 66.5 69.1 ...
-# $ t.20  : num  71.8 70.8 70.5 73.1 72.8 ...
-# $ t.30  : num  77.8 76.1 76.9 78.5 79 ...
-# $ t.60  : num  85.7 83.3 83.9 85 86.9 ...
-# $ t.90  : num  93.1 88 86.8 88 89.7 ...
-# $ t.120 : num  94.2 89.6 90.1 93.4 90.8 ...
-
 # Estimation of the parameters for Hotelling's two-sample T2 statistic
 # (for small samples)
-hs <- get_hotellings(m1 = as.matrix(dip1[dip1$type == "R", c("t.15", "t.90")]),
-                    m2 = as.matrix(dip1[dip1$type == "T", c("t.15", "t.90")]),
-                    signif = 0.1)
+hs <- get_T2_two(m1 = as.matrix(dip1[dip1$type == "R", c("t.15", "t.90")]),
+                 m2 = as.matrix(dip1[dip1$type == "T", c("t.15", "t.90")]),
+                 signif = 0.1)
 
 # Estimation of the similarity limit in terms of the "Multivariate Statistical
 # Distance" (MSD)for a "maximum tolerable average difference" (mtad) of 10
@@ -198,5 +194,5 @@ Hoffelder, T. Highly variable dissolution profiles. Comparison of
 \url{https://www.ecv.de/suse_item.php?suseId=Z|pi|8430}
 }
 \seealso{
-\code{\link{mimcr}}, \code{\link{get_hotellings}}.
+\code{\link{mimcr}}, \code{\link{get_T2_two}}.
 }

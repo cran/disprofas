@@ -13,51 +13,61 @@ mimcr(
   signif = 0.05,
   max_trial = 50,
   bounds = c(1, 85),
+  nsf = c(1, 2),
   tol = 1e-09
 )
 }
 \arguments{
 \item{data}{A data frame with the dissolution profile data in wide format.}
 
-\item{tcol}{A vector of indices specifying the columns in \code{data} that
-contain the \% release values. The length of \code{tcol} must be three or
-longer.}
+\item{tcol}{A vector of indices that specifies the columns in \code{data}
+which contain the \% release values. The length of \code{tcol} must be
+two or longer.}
 
-\item{grouping}{A character string specifying the column in \code{data} that
-contains the group names (i.e. a factorial variable, e.g., for the
+\item{grouping}{A character string that specifies the column in \code{data}
+that contains the group names (i.e. a factorial variable, e.g., for the
 differentiation of batches or formulations of a drug product).}
 
-\item{fit_n_obs}{A logical value specifying if the number of rows per level
-in the column specified by the \code{grouping} parameter should be adjusted
-to be equal given that they are not equal. The default is \code{FALSE}
-because each group should have the same number of observations. If
-\code{fit_n_obs} is \code{TRUE}, redundant observations from the level
-with more observations are dropped, i.e. only the observations \code{1}
-to the number of observations of the level with the fewer observations
-will be used for the comparison of the two groups.}
+\item{fit_n_obs}{A logical value that indicates whether the number of rows
+per level in the column specified by the \code{grouping} parameter should
+be adjusted to be equal given that they are not equal. The default is
+\code{FALSE} because for this type of analysis each group should have the
+same number of observations. If \code{fit_n_obs} is \code{TRUE}, redundant
+observations from the level with more observations are dropped, i.e. only
+the observations \code{1:n} (n: number of observations of the level with
+the fewer observations) will be used for the comparison of the two groups.}
 
-\item{mtad}{A numeric value specifying the \dQuote{maximum tolerable average
-difference} (MTAD) of the profiles of two formulations at all time points
-(in \%). The default value is \code{10}. It determines the size of the
-similarity limit \eqn{\bm{d}_g}{d_g}.}
+\item{mtad}{A numeric value that specifies the \dQuote{maximum tolerable
+average difference} (MTAD) of the profiles of two formulations at all time
+points (in \%). The default value is \code{10}. It determines the size of
+the similarity limit \eqn{\bm{d}_g}{d_g} (see the details section for more
+information).}
 
-\item{signif}{A positive numeric value between \code{0} and \code{1}
-specifying the significance level for the calculation of the
+\item{signif}{A positive numeric value between \code{0} and \code{1} that
+specifies the significance level for the calculation of the
 \dQuote{Confidence Region} (CR). The coverage of CR is
 \eqn{(1 - signif) 100}\%. The default value is \code{0.05}.}
 
-\item{max_trial}{A positive integer specifying the maximum number of
+\item{max_trial}{A positive integer that specifies the maximum number of
 Newton-Raphson search rounds to be performed.}
 
-\item{bounds}{A numeric vector of the form \code{c(lower, upper)} specifying
-the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-drug release. The default is \code{c(1, 85)}. Mean \% release values of
-any of the two groups being compared that are smaller than or equal to the
-lower bound are ignored and only the first mean \% release value that is
-greater than or equal to the upper bound is included while all the
+\item{bounds}{A numeric vector of the form \code{c(lower, upper)} that
+specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+the \% drug release. The default is \code{c(1, 85)}. Mean \% release values
+of any of the two groups being compared that are smaller than or equal to
+the lower bound are ignored and only the first mean \% release value that
+is greater than or equal to the upper bound is included while all the
 subsequent values are ignored.}
 
-\item{tol}{A non-negative numeric specifying the accepted minimal
+\item{nsf}{A vector of positive integers that specify the \dQuote{number
+of significant figures} (nsf) of the corresponding values of the
+\code{bounds} parameter. It must thus have the same length as the
+\code{bounds} parameter. Before the \% release values are compared with
+the limits that are specified by the \code{bounds} parameter, they are
+rounded to the corresponding number of significant figures as specified
+by the \code{nsf} parameter.}
+
+\item{tol}{A non-negative numeric that specifies the accepted minimal
 difference between two consecutive search rounds.}
 }
 \value{
@@ -68,12 +78,12 @@ the following list elements:
 \item{NR.CI}{List with results from the Newton-Raphson (NR) search.}
 \item{Profile.TP}{A named numeric vector of the columns in \code{data}
   specified by \code{tcol}. Given that the column names contain extractable
-  numeric information, e.g., specifying the testing time points of the
-  dissolution profile, it contains the corresponding values. Elements
-  where no numeric information could be extracted are \code{NA}.}
+  numeric information, e.g., the testing time points of the dissolution
+  profile, it contains the corresponding numeric values. Elements where no
+  numeric information could be extracted are \code{NA}.}
 
 The \code{Parameters} element contains the following information:
-\item{DM}{The Mahalanobis distance of the samples.}
+\item{dm}{The Mahalanobis distance of the samples.}
 \item{df1}{Degrees of freedom (number of variables or time points).}
 \item{df2}{Degrees of freedom (number of rows - number of variables - 1).}
 \item{alpha}{The provided significance level.}
@@ -98,8 +108,14 @@ The \code{Parameters} element contains the following information:
 \item{Obs.U}{Observed upper limit (Tsong's procedure).}
 
 The \code{NR.CI} element contains the following information:
-\item{CI}{A matrix of the points on the \eqn{CR} bounds for each time point.}
-\item{converged}{A logical specifying if the NR algorithm converged or not.}
+\item{CI}{A matrix of the points on the \eqn{\textit{CR}} bounds for each
+  time point.}
+\item{converged}{A logical that indicates whether the NR algorithm converged
+  or not.}
+\item{points.on.crb}{A logical that indicates whether the points that were
+  found by the NR algorithm sit on the confidence region boundary or not,
+  i.e. whether the \eqn{T^2} statistic of the found data points, in relation
+  to the mean difference, is equal to the critical \eqn{F} value.}
 \item{n.trial}{Number of trials until convergence.}
 \item{max.trial}{Maximal number of trials.}
 \item{Warning}{A warning message, if applicable, or otherwise NULL.}
@@ -140,8 +156,8 @@ stepwise procedure:
 \enumerate{
 \item Establish a similarity limit in terms of \dQuote{Multivariate
   Statistical Distance} (MSD) based on inter-batch differences in \% drug
-  release from reference (standard approved) formulations, i.e. the so-
-  called \dQuote{Equivalence Margin} (EM).
+  release from reference (standard approved) formulations, i.e. the
+  so-called \dQuote{Equivalence Margin} (EM).
 \item Calculate the MSD between test and reference mean dissolutions.
 \item Estimate the 90\% confidence interval (CI) of the true MSD as
   determined in step 2.
@@ -161,16 +177,21 @@ to this method, a multivariate statistical distance, called Mahalanobis
 distance, is used to measure the difference between two multivariate means.
 This distance measure is calculated as
 
-\deqn{D_M = \sqrt{ \left( \bm{x_T} - \bm{x_R} \right)^{\top}
-  \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right)} ,}{%
+\deqn{D_M = \sqrt{ \left( \bm{x}_T - \bm{x}_R \right)^{\top}
+  \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right)} ,}{%
   D_M = sqrt((x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R)) ,}
 
-where \eqn{\bm{S}_{pooled} = \frac{\left( \bm{S}_T + \bm{S}_R \right)}{2}}{%
-S_{pooled} = (S_T + S_R) / 2} is the sample variance-covariance matrix
-pooled across the batches, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R} are
-the vectors of the sample means for the test (\eqn{T}) and reference
+where \eqn{\bm{S}_{pooled}} is the sample variance-covariance matrix pooled
+across the comparative groups, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R}
+are the vectors of the sample means for the test (\eqn{T}) and reference
 (\eqn{R}) profiles, and \eqn{\bm{S}_T}{S_T} and \eqn{\bm{S}_R}{x_R} are the
-variance-covariance matrices of the test and reference profiles.
+variance-covariance matrices of the test and reference profiles. The pooled
+variance-covariance matrix \eqn{\bm{S}_{pooled}}{S_{pooled}} is calculated
+by
+
+\deqn{\bm{S}_{pooled} = \frac{(n_R - 1) \bm{S}_R + (n_T - 1) \bm{S}_T}{%
+  n_R + n_T - 2} .}{S_{pooled} = ((n_R - 1) S_R + (n_T - 1) S_T) /
+  (n_R + n_T - 2) .}
 
 In order to determine the similarity limits in terms of the MSD, i.e. the
 Mahalanobis distance between the two multivariate means of the dissolution
@@ -185,27 +206,31 @@ where \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p} vector with all
 e.g., \eqn{15}\%, for the maximum tolerable difference at all time points,
 and \eqn{p} is the number of sampling points. By assuming that the data
 follow a multivariate normal distribution, the 90\% confidence region
-(\eqn{CR}) bounds for the true difference between the mean vectors,
+(\eqn{\textit{CR}}) bounds for the true difference between the mean vectors,
 \eqn{\bm{\mu}_T - \bm{\mu}_R}{\mu_T - \mu_R}, can be computed for the
 resultant vector \eqn{\bm{\mu}}{\mu} to satisfy the following condition:
 
-\deqn{\bm{CR} = K \left( \bm{\mu} - \left( \bm{x_T} - \bm{x_R} \right)
-  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} - \left( \bm{x_T} -
-  \bm{x_R} \right) \right) \leq F_{p, n_T + n_R - p - 1, 0.9} ,}{%
+\deqn{\bm{\textit{CR}} = K \left( \bm{\mu} - \left( \bm{x}_T -
+  \bm{x}_R \right) \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} -
+  \left( \bm{x}_T - \bm{x}_R \right) \right) \leq
+  F_{p, n_T + n_R - p - 1, 0.9} ,}{%
   CR = sqrt((\mu - (x_T - x_R))^{\top} S_{pooled}^{-1} (\mu - (x_T - x_R)))
   \leq F_{p, n_T + n_R - p - 1, 0.9} ,}
 
 where \eqn{K} is the scaling factor that is calculated as
 
-\deqn{K = \frac{n_T n_R}{n_T + n_R} \cdot \frac{n_T + n_R - p - 1}{
-  \left( n_T + n_R - 2 \right) \cdot p} ,}{%
-  (n_T n_R) / (n_T + n_R) * (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
+\deqn{K = \frac{n_T n_R}{n_T + n_R} \; \frac{n_T + n_R - p - 1}{
+  \left( n_T + n_R - 2 \right) p} ,}{%
+  (n_T n_R) / (n_T + n_R) (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
 
 and \eqn{F_{p, n_T + n_R - p - 1, 0.9}} is the \eqn{90^{th}} percentile of
 the \eqn{F} distribution with degrees of freedom \eqn{p} and
-\eqn{n_T + n_R - p - 1}. It is obvious that \eqn{(n_T + n_R)} must be greater
-than \eqn{(p + 1)}. The formula for \eqn{CR} gives a \eqn{p}-variate 90\%
-confidence region for the possible true differences. \cr
+\eqn{n_T + n_R - p - 1}, where \eqn{n_T} and \eqn{n_R} are the number of
+observations of the reference and the test group, respectively, and \eqn{p}
+is the number of sampling or time points, as mentioned already. It is
+obvious that \eqn{(n_T + n_R)} must be greater than \eqn{(p + 1)}. The
+formula for \eqn{\textit{CR}} gives a \eqn{p}-variate 90\% confidence region
+for the possible true differences. \cr
 }
 
 \section{T2 test for equivalence}{
@@ -220,10 +245,10 @@ equivalence is taken if the \eqn{p} value of this test statistic is smaller
 than the pre-specified significance level \eqn{\alpha}, i.e. if
 \eqn{p < \alpha}. The \eqn{p} value is calculated by aid of the formula
 
-\deqn{p = F_{p, n_T + n_R - p - 1, ncp, \alpha}
+\deqn{p = F_{p, n_T + n_R - p - 1, ncp, \alpha} \;
   \frac{n_T + n_R - p - 1}{(n_T + n_R - 2) p} T^2 ,}{%
   p = F_{p, n_T + n_R - p - 1, ncp, \alpha}
-  (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) T^2 ,}
+  (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) \; T^2 ,}
 
 where \eqn{\alpha} is the significance level and \eqn{ncp} is the so-called
 \dQuote{\emph{non-centrality parameter}} that is calculated by
@@ -231,36 +256,26 @@ where \eqn{\alpha} is the significance level and \eqn{ncp} is the so-called
 \deqn{\frac{n_T n_R}{n_T + n_R} \left( D_M^{max} \right)^2 .}{%
   (n_T n_R) / (n_T + n_R) (D_M^{max})^2 .}
 
-The test statistic being used is Hotelling's \eqn{T^2} that is given as
+The test statistic being used is Hotelling's two-sample \eqn{T^2} test that
+is given as
 
-\deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x_T} - \bm{x_R}
-  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right) .}{%
-  (n_T n_R) / (n_T + n_R) * (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) .}
+\deqn{T^2 = \frac{n_T n_R}{n_T + n_R} \left( \bm{x}_T - \bm{x}_R
+  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right) .}{%
+  (n_T n_R) / (n_T + n_R) (x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R) .}
 
-As mentioned elsewhere, \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p}
-vector with all \eqn{p} elements equal to an empirically defined limit
-\eqn{d_g}. Thus, the components of the vector \eqn{\bm{d}_g}{d_g} can be
-interpreted as upper bound for a kind of \dQuote{\emph{average}} allowed
-difference between test and reference profiles, the \dQuote{\emph{global
-similarity limit}}. Since the EMA requires that \dQuote{similarity acceptance
-limits should be pre-defined and justified and not be greater than a 10\%
-difference}, it is recommended to use 10\%, not 15\% as proposed by Tsong
-et al. (1996), for the maximum tolerable difference at all time points.
+As mentioned in paragraph \dQuote{Similarity limits in terms of MSD},
+\eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p} vector with all \eqn{p}
+elements equal to an empirically defined limit \eqn{d_g}. Thus, the
+components of the vector \eqn{\bm{d}_g}{d_g} can be interpreted as upper
+bound for a kind of \dQuote{\emph{average}} allowed difference between test
+and reference profiles, the \dQuote{\emph{global similarity limit}}.
+Since the EMA requires that \dQuote{similarity acceptance limits should be
+pre-defined and justified and not be greater than a 10\% difference}, it is
+recommended to use 10\%, not 15\% as proposed by Tsong et al. (1996), for
+the maximum tolerable difference at all time points.
 }
 
 \examples{
-# Dissolution data  of one reference batch and one test batch of n = 12
-# capsules each:
-str(dip3)
-
-# 'data.frame':	24 obs. of  6 variables:
-# $ cap  : Factor w/ 12 levels "1","2","3","4",..: 1 2 3 4 5 6 7 8 9 10 ...
-# $ batch: Factor w/ 2 levels "blue","white": 2 2 2 2 2 2 2 2 2 2 ...
-# $ type : Factor w/ 2 levels "ref","test": 1 1 1 1 1 1 1 1 1 1 ...
-# $ x.15 : num  49 15 56 57 6 62 23 11 9 42 ...
-# $ x.20 : num  86 59 84 87 58 90 71 64 61 81 ...
-# $ x.25 : num  98 96 96 99 90 97 97 92 88 96 ...
-
 # Using the defaults, only profile time points with an average release of >= 1\%
 # and only one time point with an average release of > 85\% are taken into
 # account.
@@ -285,42 +300,29 @@ res1$Parameters
 #  1.543820e+00
 
 # Comparison with T2-test for equivalence for dissolution data from the 'T2EQ'
-# package:
-if (requireNamespace("T2EQ")) {
-  library(T2EQ)
-  data(ex_data_JoBS)
+# package
+\dontrun{
+  if (requireNamespace("T2EQ")) {
+    library(T2EQ)
+    data(ex_data_JoBS)
 
-  T2EQ.dissolution.profiles.hoffelder(
-    X = as.matrix(dip3[dip3$type == "ref", c("x.15", "x.20", "x.25")]),
-    Y = as.matrix(dip3[dip3$type == "test", c("x.15", "x.20", "x.25")]))
+    T2EQ.dissolution.profiles.hoffelder(
+      X = as.matrix(dip3[dip3$type == "ref", c("x.15", "x.20", "x.25")]),
+      Y = as.matrix(dip3[dip3$type == "test", c("x.15", "x.20", "x.25")]))
+  }
+
+  # Excerpt of output:
+  # Hotelling's T2: 			                      0.3410141
+  # Noncentrality parameter:                    30.32296
+  # Significance level: 		                    0.05
+  # Teststatistic: 			                        0.1033376
+  # Quantile of noncent. F-distribution:        4.899274
+  # p-value of the T2-test for equivalence: p = 2.890827e-08
 }
 
-# Excerpt of output:
-# Hotelling's T2: 			                     0.3410141
-# Noncentrality parameter:                   30.32296
-# Significance level: 		                    0.05
-# Teststatistic: 			                        0.1033376
-# Quantile of noncent. F-distribution:        4.899274
-# p-value of the T2-test for equivalence: p = 2.890827e-08
-
-# Dissolution data of one reference batch and one test batch of n = 6
-# tablets each:
-str(dip1)
-
-# 'data.frame':	12 obs. of  10 variables:
-# $ type  : Factor w/ 2 levels "R","T": 1 1 1 1 1 1 2 2 2 2 ...
-# $ tablet: Factor w/ 6 levels "1","2","3","4",..: 1 2 3 4 5 6 1 2 3 4 ...
-# $ t.5   : num  42.1 44.2 45.6 48.5 50.5 ...
-# $ t.10  : num  59.9 60.2 55.8 60.4 61.8 ...
-# $ t.15  : num  65.6 67.2 65.6 66.5 69.1 ...
-# $ t.20  : num  71.8 70.8 70.5 73.1 72.8 ...
-# $ t.30  : num  77.8 76.1 76.9 78.5 79 ...
-# $ t.60  : num  85.7 83.3 83.9 85 86.9 ...
-# $ t.90  : num  93.1 88 86.8 88 89.7 ...
-# $ t.120 : num  94.2 89.6 90.1 93.4 90.8 ...
-
 # Use of 'bounds = c(1, 85)'
-res2 <- mimcr(data = dip1, tcol = 3:10, grouping = "type", bounds = c(1, 85))
+res2 <- mimcr(data = dip1, tcol = 3:10, grouping = "type", bounds = c(1, 85),
+              nsf = c(1, 2))
 res2$Similarity
 res2$Profile.TP
 res2[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
@@ -333,14 +335,14 @@ res2[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 # t.5 t.10 t.15 t.20 t.30 t.60 t.90
 #   5   10   15   20   30   60   90
 
-# Expected results in
+# Expected results in res2$Parameters
 # res2[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 # p.F.Hoffelder     Sim.Limit         Obs.U
 #      0.740219     11.328041     31.679020
 
 # Allow for a larger maximum tolerable average difference (MTAD), e.g., 15.
 res3 <- mimcr(data = dip1, tcol = 3:10, grouping = "type", mtad = 15,
-              bounds = c(1, 85))
+              bounds = c(1, 85), nsf = c(1, 2))
 res3$Similarity
 res3[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 
@@ -348,7 +350,7 @@ res3[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 #        Tsong    Hoffelder
 # "Dissimilar" "Dissimilar"
 
-# Expected results in
+# Expected results in res3$Parameters
 # res3[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 # p.F.Hoffelder     Sim.Limit         Obs.U
 #     0.3559019    16.9920622    31.6790198
@@ -356,51 +358,53 @@ res3[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 # Use default 'mtad' but set 'signif = 0.1' and use 'bounds = c(1, 95)' so that
 # the complete profiles are taken into account.
 res4 <- mimcr(data = dip1, tcol = 3:10, grouping = "type", mtad = 10,
-              signif = 0.1, bounds = c(1, 95))
+              signif = 0.1, bounds = c(1, 95), nsf = c(1, 2))
 res4$Similarity
 res4$Profile.TP
 res4[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 
-# Expected results in res3$Similarity
+# Expected results in res4$Similarity
 #        Tsong    Hoffelder
 # "Dissimilar" "Dissimilar"
 
-# Expected results in res2$Profile.TP
+# Expected results in res4$Profile.TP
 # t.5  t.10  t.15  t.20  t.30  t.60  t.90 t.120
 #   5    10    15    20    30    60    90   120
 
-# Expected results in
+# Expected results in res4$Parameters
 # res2[["Parameters"]][c("p.F.Hoffelder", "Sim.Limit", "Obs.U")]
 # p.F.Hoffelder     Sim.Limit         Obs.U
 #     0.1449045    19.4271898    33.3180044
 
-# If 'max_trial' is too small, the Newton-Raphson search may not converge.
-tryCatch(
-  mimcr(data = dip1, tcol = 3:10, grouping = "type", max_trial = 5),
-  warning = function(w) message(w),
-  finally = message("\nMaybe increasing the number of max_trial could help."))
+\dontrun{
+  # If 'max_trial' is too small, the Newton-Raphson search may not converge.
+  tryCatch(
+    mimcr(data = dip1, tcol = 3:10, grouping = "type", max_trial = 5),
+    warning = function(w) message(w),
+    finally = message("\nMaybe increasing the number of max_trial could help."))
 
-# If 'tol' is too big, the points found by the Newton-Raphson search may not
-# be located on the confidence region boundary.
-tryCatch(
-  mimcr(data = dip3, tcol = 4:6, grouping = "batch", tol = 1),
-  warning = function(w) message(w),
-  finally = message("\nMaybe making tol smaller could help."))
+  # If 'tol' is too big, the points found by the Newton-Raphson search may not
+  # be located on the confidence region boundary.
+  tryCatch(
+    mimcr(data = dip3, tcol = 4:6, grouping = "batch", tol = 1),
+    warning = function(w) message(w),
+    finally = message("\nMaybe making tol smaller could help."))
 
-# Passing in a data frame with a grouping variable with a number of levels that
-# differs from two produces an error.
-tmp <- rbind(dip1,
-             data.frame(type = "T2",
-                        tablet = as.factor(1:6),
-                        dip1[7:12, 3:10]))
+  # Passing in a data frame with a grouping variable with a number of levels
+  # that differs from two produces an error.
+  tmp <- rbind(dip1,
+               data.frame(type = "T2",
+                          tablet = as.factor(1:6),
+                          dip1[7:12, 3:10]))
 
-tryCatch(
-  mimcr(data = tmp, tcol = 3:10, grouping = "type", bounds = c(1, 85)),
-  error = function(e) message(e),
-  finally = message("\nMaybe you want to remove unesed levels in data."))
+  tryCatch(
+    mimcr(data = tmp, tcol = 3:10, grouping = "type", bounds = c(1, 85)),
+    error = function(e) message(e),
+    finally = message("\nMaybe you want to remove unesed levels in data."))
 
-# Error in mimcr(data = tmp, tcol = 3:10, grouping = "type", bounds = ,  :
-#   The number of levels in column type differs from 2.
+  # Error in mimcr(data = tmp, tcol = 3:10, grouping = "type", bounds = ,  :
+  #   The number of levels in column type differs from 2.
+}
 }
 \references{
 United States Food and Drug Administration (FDA). Guidance for industry:
@@ -415,9 +419,8 @@ testing, and \emph{in vivo} bioequivalence documentation (SUPAC-IR). 1995.\cr
 
 European Medicines Agency (EMA), Committee for Medicinal Products for
 Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-\url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-guideline-investigation-bioequivalence-rev1_en.pdf}
+\href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+CPMP/EWP/QWP/1401/98 Rev. 1}.
 
 Tsong, Y., Hammerstrom, T., Sathe, P.M., and Shah, V.P. Statistical
 assessment of mean differences between two dissolution data sets.
@@ -440,6 +443,6 @@ Hoffelder, T. Highly variable dissolution profiles. Comparison of
 \url{https://www.ecv.de/suse_item.php?suseId=Z|pi|8430}
 }
 \seealso{
-\code{\link{gep_by_nera}}, \code{\link{bootstrap_f2}},
-  \code{\link{mztia}}.
+\code{\link{gep_by_nera}}, \code{\link{get_T2_two}},
+\code{\link{get_T2_one}}, \code{\link{bootstrap_f2}}, \code{\link{mztia}}.
 }

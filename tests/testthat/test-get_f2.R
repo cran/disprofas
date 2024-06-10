@@ -21,6 +21,20 @@ test_that("get_f2_results_match", {
   expect_equal(round(res5, 2), 48.05)
 })
 
+test_that("get_f2_sends_message", {
+  t_dat <- dip2[dip2$batch %in% c("b0", "b1"), ]
+  t_dat[1, "t.30"] <- NA
+  t_dat[12, "t.60"] <- NA
+  t_dat[13, "t.90"] <- NaN
+  t_dat[24, "t.180"] <- NaN
+
+  # <-><-><-><->
+
+  res <- expect_message(get_f2(data = t_dat,
+                               ins = 1:24, tcol = 5:8, grouping = "batch"),
+                        "data contains NA/NaN values")
+  expect_equal(res, NA_real_)
+})
 
 test_that("get_f2_fails", {
   tmp0 <- dip2

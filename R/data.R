@@ -100,7 +100,7 @@
 #'
 #' @references
 #' Hoffelder, T., Goessl, R., and Wellek, S. Multivariate equivalence tests for
-#' use in pharmaceutical development. \emph{J Biopharm Stat} (2015)
+#' use in pharmaceutical development. \emph{J Biopharm Stat}. 2015;
 #' \strong{25}(3): 417-437.\cr
 #' \doi{10.1080/10543406.2014.920344}
 #'
@@ -195,3 +195,136 @@
 #' @examples
 #' str(dip5)
 "dip5"
+
+
+#' Dissolution data of a reference and a test batch
+#'
+#' A data set containing the simulated dissolution data of one reference batch
+#'   and one test batch of \eqn{n = 12} tablets each, i.e. the dissolution
+#'   profiles of the \% drug release observed within a period of 140 minutes.
+#'   The profiles are simulated to have a kink between 115 and 125 minutes.
+#'
+#' @docType data
+#'
+#' @usage data(dip6)
+#'
+#' @format A data frame with 24 observations and 31 variables:
+#' \describe{
+#'   \item{type}{Factor with levels \code{R} (Reference) and \code{T} (Test)}
+#'   \item{tablet}{Factor with levels \code{1} to \code{12} representing
+#'     individual tablets}
+#'   \item{t.0}{Numeric of the \% release at the initial testing point}
+#'   \item{t.5}{Numeric of the \% release at the 5 minutes testing point}
+#'   \item{t.10}{Numeric of the \% release at the 10 minutes testing point}
+#'   \item{t.15}{Numeric of the \% release at the 15 minutes testing point}
+#'   \item{t.20}{Numeric of the \% release at the 20 minutes testing point}
+#'   \item{t.25}{Numeric of the \% release at the 25 minutes testing point}
+#'   \item{t.30}{Numeric of the \% release at the 30 minutes testing point}
+#'   \item{t.35}{Numeric of the \% release at the 35 minutes testing point}
+#'   \item{t.40}{Numeric of the \% release at the 40 minutes testing point}
+#'   \item{t.45}{Numeric of the \% release at the 45 minutes testing point}
+#'   \item{t.50}{Numeric of the \% release at the 50 minutes testing point}
+#'   \item{t.55}{Numeric of the \% release at the 55 minutes testing point}
+#'   \item{t.60}{Numeric of the \% release at the 60 minutes testing point}
+#'   \item{t.65}{Numeric of the \% release at the 65 minutes testing point}
+#'   \item{t.70}{Numeric of the \% release at the 70 minutes testing point}
+#'   \item{t.75}{Numeric of the \% release at the 75 minutes testing point}
+#'   \item{t.80}{Numeric of the \% release at the 80 minutes testing point}
+#'   \item{t.85}{Numeric of the \% release at the 85 minutes testing point}
+#'   \item{t.90}{Numeric of the \% release at the 90 minutes testing point}
+#'   \item{t.95}{Numeric of the \% release at the 95 minutes testing point}
+#'   \item{t.100}{Numeric of the \% release at the 100 minutes testing point}
+#'   \item{t.105}{Numeric of the \% release at the 105 minutes testing point}
+#'   \item{t.110}{Numeric of the \% release at the 110 minutes testing point}
+#'   \item{t.115}{Numeric of the \% release at the 115 minutes testing point}
+#'   \item{t.120}{Numeric of the \% release at the 120 minutes testing point}
+#'   \item{t.125}{Numeric of the \% release at the 125 minutes testing point}
+#'   \item{t.130}{Numeric of the \% release at the 130 minutes testing point}
+#'   \item{t.135}{Numeric of the \% release at the 135 minutes testing point}
+#'   \item{t.140}{Numeric of the \% release at the 140 minutes testing point}
+#' }
+#'
+#' @examples
+#' str(dip6)
+"dip6"
+
+
+#' Parameter estimates of Weibull fit to individual dissolution profiles
+#'
+#' A data set containing the Weibull parameter estimates obtained from fitting
+#'   Weibull curves to the cumulative dissolution profiles of individual
+#'   tablets of three reference batches and one test batch, \eqn{n = 12}
+#'   tablets each. The Weibull curve is fitted according to the formula
+#'   \eqn{x(t) = x_{max} ( 1 - exp(- \alpha t^{\beta}))}, where \eqn{x(t)} is
+#'   the percent released at time \eqn{t} divided by \eqn{100}, \eqn{x_{max}}
+#'   is the maximal release (set to be \eqn{100}, i.e. assumed to be a
+#'   constant).
+#'
+#' @docType data
+#'
+#' @usage data(dip7)
+#'
+#' @format A data frame with 48 observations and 5 variables:
+#' \describe{
+#'   \item{tablet}{Factor with levels \code{1} to \code{12} representing
+#'     individual tablets}
+#'   \item{batch}{Factor with levels \code{b0}, \code{b1}, \code{b2}, \code{b3}
+#'     and \code{b4}}
+#'   \item{type}{Factor with levels \code{ref} (Reference) and \code{test}
+#'     (Test)}
+#'   \item{alpha}{Weibull parameter \eqn{\alpha}, i.e. the scale parameter
+#'     being a function of the undissolved proportion at \eqn{t = 1}}
+#'   \item{beta}{Weibull parameter \eqn{\beta}, i.e. the shape parameter
+#'     which is related to the dissolution rate per unit of time}
+#' }
+#'
+#' @references
+#' Tsong, Y., Hammerstrom, T., Chen, J.J. Multipoint dissolution specification
+#' and acceptance sampling rule based on profile modeling and principal
+#' component analysis. \emph{J Biopharm Stat}. 1997; \strong{7}(3): 423-439.\cr
+#' \doi{10.1080/10543409708835198}
+#'
+#' @source
+#' See reference: Example data set shown in Table 4.
+#'
+#' @examples
+#' str(dip7)
+"dip7"
+
+
+#' Parameter estimates of Weibull fit to individual dissolution profiles
+#'
+#' A data set containing the Weibull parameter estimates obtained from fitting
+#'   Weibull curves to the cumulative dissolution profiles of individual
+#'   tablets of one reference batch and one test or post-change batch with a
+#'   minor modification and a second test or post-change batch with a major
+#'   modification, \eqn{n = 12} tablets each.
+#'
+#' @docType data
+#'
+#' @usage data(dip8)
+#'
+#' @format A data frame with 36 observations and 4 variables:
+#' \describe{
+#'   \item{tablet}{Factor with levels \code{1} to \code{12} representing
+#'     individual tablets}
+#'   \item{type}{Factor with levels \code{ref} (Reference), \code{minor} (Test)
+#'     and \code{major} (Test)}
+#'   \item{alpha}{Weibull parameter \eqn{\alpha}, i.e. the scale parameter
+#'     being a function of the undissolved proportion at \eqn{t = 1}}
+#'   \item{beta}{Weibull parameter \eqn{\beta}, i.e. the shape parameter
+#'     which is related to the dissolution rate per unit of time}
+#' }
+#'
+#' @references
+#' Sathe, P.M., Tsong, Y., and Shah, V.P. \emph{In-Vitro} dissolution profile
+#' comparison: Statistics and analysis, model dependent approach.
+#' \emph{Pharm Res}. 1996; \strong{13}(12): 1799-1803.\cr
+#' \doi{10.1023/a:1016020822093}
+#'
+#' @source
+#' See reference: Example data set shown in Table III.
+#'
+#' @examples
+#' str(dip8)
+"dip8"

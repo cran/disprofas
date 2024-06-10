@@ -2,11 +2,11 @@
 #'
 #' The \emph{Martinez & Zhao Tolerance Interval Approach} (\code{mztia}) is a
 #' simple approach for the comparison of dissolution profiles. The
-#' \code{mztia()} function calculates tolerance intervals (TI) at each time
-#' point of the dissolution profiles of a set of reference batches. By aid
-#' of a graphical display the test batches are checked to lie within the TI
-#' boundaries or within certain limits exceeding the TI boundaries by a
-#' specified percentage.
+#' \code{mztia()} function calculates tolerance intervals (\eqn{\textit{TI}})
+#' at each time point of the dissolution profiles of a set of reference
+#' batches. By aid of a graphical display the test batches are checked to lie
+#' within the \eqn{\textit{TI}} boundaries or within certain limits exceeding
+#' the \eqn{\textit{TI}} boundaries by a specified percentage.
 #'
 #' @param data A data frame with the dissolution profile data in wide or in
 #'   long format (see parameter \code{shape}). If the data frame is in wide
@@ -16,49 +16,50 @@
 #'   information, e.g., \code{(t_0, t_5, t_10)}. If the data frame is in long
 #'   format, it must have a column of time points (column specified via the
 #'   \code{tcol} parameter).
-#' @param shape A character string specifying if the data frame is in long or
-#'   in wide format.
+#' @param shape A character string that indicates whether the data frame is
+#'   in long or in wide format.
 #' @param tcol If \code{shape} is \code{"wide"} an integer vector of indices,
-#'   if \code{shape} is \code{"long"} an integer, specifying the column(s)
+#'   if \code{shape} is \code{"long"} an integer that specifies the column(s)
 #'   containing the profile time points. If the data frame is in \code{wide}
 #'   format it is reshaped using the function \code{\link[stats]{reshape}()}
 #'   from the \sQuote{\code{stats}} package.
-#' @param grouping A character string specifying the column in \code{data}
-#'   that contains the group names (i.e. a factorial variable, e.g., for the
-#'   differentiation of batches or formulations of a drug product).
-#' @param reference A character string specifying the name of the reference
+#' @param reference A character string that specifies the name of the reference
 #'   group from the \code{grouping} variable.
 #' @param response A character string that is expected if \code{data} is
-#'   provided in long format in order to specify the column with the \% drug
-#'   release values. The default is \code{NULL}.
-#' @param alpha A numeric value between 0 and 1 specifying the probability
+#'   provided in long format to specify the column with the \% drug release
+#'   values. The default is \code{NULL}.
+#' @param alpha A numeric value between 0 and 1 that specifies the probability
 #'   level. The default is \code{0.05}.
-#' @param P A numeric value between 0 and 1 specifying the proportion of the
-#'   population being enclosed by the tolerance interval boundaries. The
+#' @param pp A numeric value between 0 and 1 that specifies the proportion of
+#'   the population being enclosed by the tolerance interval boundaries. The
 #'   default is \code{0.99}.
-#' @param cap A logical variable specifying if the calculated tolerance limits
-#'   should be limited (i.e. \emph{cap}ped). The default is \code{TRUE}.
-#' @param bounds A numeric vector of the form \code{c(lower, upper)} specifying
-#'   the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-#'   drug release at which the calculated tolerance interval limits should
-#'   be capped (see parameter \eqn{cap}. This parameter is only relevant if
-#'   \code{cap = TRUE}. The default is \code{c(0, 100)}.
-#' @param QS A numeric vector of the form \code{c(Q S1, Q S2)} that specifies
+#' @param cap A logical variable that indicates whether the calculated
+#'   tolerance limits should be limited (i.e. \emph{cap}ped). The default is
+#'   \code{TRUE}.
+#' @param bounds A numeric vector of the form \code{c(lower, upper)} that
+#'   specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+#'   the \% drug release at which the calculated tolerance interval limits
+#'   should be capped (see parameter \eqn{cap}. This parameter is only relevant
+#'   if \code{cap = TRUE}. The default is \code{c(0, 100)}.
+#' @param qs A numeric vector of the form \code{c(Q S1, Q S2)} that specifies
 #'   the allowable deviations from the specifications in percent according to
 #'   the \eqn{S1} and \eqn{S2} acceptance criteria of USP chapter <711> on
 #'   dissolution. The default is \code{c(5, 15)}.
 #' @param ... Further arguments passed on to the \code{\link[stats]{reshape}()}
 #'   from the \sQuote{\code{stats}} package.
+#' @inheritParams get_T2_one
+#' @inheritParams mimcr
 #'
 #' @details The tolerance interval approach proposed by Martinez & Zhao (2018)
 #' is a simple approach for the comparison of dissolution profiles. The authors
 #' propose to calculate for each time point of a set of reference dissolution
-#' profiles a tolerance interval (\eqn{TI}), i.e. intervals containing \eqn{P}\%
-#' of the population of potential values for reference product at a probability
-#' level of \eqn{alpha / 2} per tail (i.e., \eqn{(1 - alpha) 100}\% confidence).
-#' Based on these \eqn{TI}s the dissolution profiles of the test batch(es) is
-#' (are) compared, i.e. the corresponding data points should lie within the
-#' \eqn{TI}s. The \eqn{TI}s are calculated as
+#' profiles a tolerance interval (\eqn{\textit{TI}}), i.e. intervals containing
+#' \eqn{pp}\% of the population of potential values for reference product at a
+#' probability level of \eqn{alpha / 2} per tail (i.e., \eqn{(1 - alpha) 100}\%
+#' confidence). Based on these \eqn{\textit{TI}}s the dissolution profiles of
+#' the test batch(es) is (are) compared, i.e. the corresponding data points
+#' should lie within the \eqn{\textit{TI}}s. The \eqn{\textit{TI}}s are
+#' calculated as
 #'
 #' \deqn{Y_{utl,ltl} = \bar{Y} \pm k \times s}{Y_{utl,ltl} = Y.bar +- k*s}
 #'
@@ -71,10 +72,10 @@
 #' Martinez & Zhao propose allowing acceptable deviations by utilizing the
 #' concepts described by the United States Pharmacopoeia (USP), chapter <711>
 #' on dissolution, defining \emph{allowable deviations from a set of product
-#' specifications} (\eqn{Q}). The \eqn{TI}s serve as the target value \eqn{Q}
-#' at each sampling time. The allowable deviations about \eqn{Q} are defined
-#' by the \eqn{S1} and \eqn{S2} acceptance criteria of USP chapter <711> on
-#' dissolution:
+#' specifications} (\eqn{Q}). The \eqn{\textit{TI}}s serve as the target value
+#' \eqn{Q} at each sampling time. The allowable deviations about \eqn{Q} are
+#' defined by the \eqn{S1} and \eqn{S2} acceptance criteria of USP chapter
+#' <711> on dissolution:
 #' \enumerate{
 #' \item The \eqn{S1} level boundary is defined by \eqn{Q \pm 5}{Q +- 5}\%
 #'   at each time point. For every 12 profiles tested, only one profile is
@@ -89,13 +90,14 @@
 #' additional runs of the reference product must be performed. It is deemed
 #' appropriate to use the same values of \eqn{S1} and \eqn{S2} across all time
 #' points because the high variability associated with the early sampling times
-#' is already factored into the \eqn{TI}s.
+#' is already factored into the \eqn{\textit{TI}}s.
 #'
-#' \eqn{TI} calculation according to Hahn is proposed because it appeared to be
-#' more numerically stable and gave more consistent \eqn{TI}s than the \eqn{TI}
-#' calculation method proposed by Howe (Howe 1969) when samples were very
-#' variable. The reason might be due to the less stringent requirements
-#' imposed by Hahn's method with respect to the normality of the data.
+#' \eqn{\textit{TI}} calculation according to Hahn is proposed because it
+#' appeared to be more numerically stable and gave more consistent
+#' \eqn{\textit{TI}}s than the \eqn{\textit{TI}} calculation method proposed
+#' by Howe (Howe 1969) when samples were very variable. The reason might be due
+#' to the less stringent requirements imposed by Hahn's method with respect to
+#' the normality of the data.
 #'
 #' @return An object of class \sQuote{\code{mztia}} is returned, containing the
 #' following elements:
@@ -105,20 +107,20 @@
 #'   the calculated tolerance interval results.}
 #' \item{Profile.TP}{If \code{shape} is \code{"wide"} a named numeric vector
 #'   of the columns in \code{data} specified by \code{tcol}. Given that the
-#'   column names contain extractable numeric information, e.g., specifying
-#'   the testing time points of the dissolution profile, it contains the
-#'   corresponding values. Elements where no numeric information could be
-#'   extracted are \code{NA}. If \code{shape} is \code{"long"} it is a numeric
-#'   value, specifying the column containing the \% release values.}
+#'   column names contain extractable numeric information, e.g., the testing
+#'   time points of the dissolution profile, it contains the corresponding
+#'   numeric values. Elements where no numeric information could be extracted
+#'   are \code{NA}. If \code{shape} is \code{"long"} it is a numeric value that
+#'   specifies the column containing the \% release values.}
 #'
 #' @references
 #' Martinez, M.N., and Zhao, X. A simple approach for comparing the
 #' \emph{in vitro} dissolution profiles of highly variable drug products: a
-#' proposal. \emph{AAPS Journal}. (2018); \strong{20}: 78.\cr
+#' proposal. \emph{AAPS Journal}. 2018; \strong{20}: 78.\cr
 #' \doi{10.1208/s12248-018-0238-1}
 #'
 #' Howe, W.G. Two-sided tolerance limits for normal populations - some
-#' improvements. \emph{J Am Stat Assoc}. (1969); \strong{64}: 610-620.\cr
+#' improvements. \emph{J Am Stat Assoc}. 1969; \strong{64}: 610-620.\cr
 #' \doi{10.1080/01621459.1969.10500999}
 #'
 #' Hahn, G.J., and Meeker, W. Q. Statistical intervals: A guide for
@@ -142,12 +144,13 @@
 #' @importFrom stats qchisq
 #' @importFrom stats reshape
 #' @importFrom stats aggregate
+#' @importFrom stats na.omit
 #'
 #' @export
 
 mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
-                  alpha = 0.05, P = 0.99, cap = TRUE, bounds = c(0, 100),
-                  QS = c(5, 15), ...) {
+                  na_rm = FALSE, alpha = 0.05, pp = 0.99, cap = TRUE,
+                  bounds = c(0, 100), qs = c(5, 15), ...) {
   if (!is.data.frame(data)) {
     stop("The data must be provided as data frame.")
   }
@@ -158,19 +161,20 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
     stop("Please specify shape either as \"long\" or \"wide\".")
   }
   if (!is.numeric(tcol)) {
-    stop("The paramter tcol must be an integer (vector).")
+    stop("The parameter tcol must be an integer (vector).")
   }
   if (!isTRUE(all.equal(tcol, as.integer(tcol)))) {
     stop("The parameter tcol must be an integer (vector).")
   }
-  if (min(tcol) < 1 | max(tcol) > ncol(data)) {
+  if (min(tcol) < 1 || max(tcol) > ncol(data)) {
     stop("Some columns specified by tcol were not found in data frame.")
   }
   if (shape == "wide") {
     if (length(tcol) == 1) {
-      stop("The parameter tcol has length 1. Did you provide a data frame in ",
-           "long format, i.e. the shape parameter should be \"long\" instead ",
-           "of \"wide\", or should tcol be changed (specifying the profiles)?")
+      stop("The parameter tcol has length 1. Did you provide a data frame in\n",
+           "  long format? Then, the shape parameter should be \"long\" \n",
+           "  instead of \"wide\". Alternatively, tcol should be changed\n",
+           "  (specifying the profiles).")
     }
     if (sum(grepl("\\d", colnames(data[, tcol]))) < length(tcol)) {
       stop("Some names of columns specified by tcol ",
@@ -195,12 +199,12 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
   if (sum(levels(data[, grouping]) %in% reference) == 0) {
     stop("The reference variable was not found in the grouping column.")
   }
-  if (shape == "long" & is.null(response)) {
+  if (shape == "long" && is.null(response)) {
     stop("When the data frame provided via data is in long format the ",
          "response parameter must be specified.")
   }
   if (!is.null(response)) {
-    if (!is.character(response) | length(response) != 1) {
+    if (!is.character(response) || length(response) != 1) {
       stop("The parameter response must be a string of length 1.")
     }
     if (!(response %in% colnames(data))) {
@@ -210,33 +214,47 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
       stop("The column specified by response is not numeric.")
     }
   }
-  if (alpha <= 0 | alpha > 1) {
+  if (!is.logical(na_rm) || length(na_rm) > 1) {
+    stop("The parameter na_rm must be a logical of length 1.")
+  }
+  if (alpha <= 0 || alpha > 1) {
     stop("Please specify alpha as (0, 1]")
   }
-  if (P <= 0 | P > 1) {
-    stop("Please specify P as (0, 1]")
+  if (pp <= 0 || pp > 1) {
+    stop("Please specify pp as (0, 1]")
   }
   if (!is.logical(cap)) {
     stop("The parameter cap must be a logical.")
   }
-  if (!is.numeric(bounds) | length(bounds) != 2) {
-    stop("The paramter bounds must be a numeric vector of length 2.")
+  if (!is.numeric(bounds) || length(bounds) != 2) {
+    stop("The parameter bounds must be a numeric vector of length 2.")
   }
   if (bounds[1] > bounds[2]) {
     stop("Please specify bounds in the form c(lower limit, upper limit).")
   }
-  if (!is.numeric(QS) | length(QS) != 2) {
-    stop("The paramter QS must be a numeric vector of length 2.")
+  if (!is.numeric(qs) || length(qs) != 2) {
+    stop("The parameter qs must be a numeric vector of length 2.")
   }
-  if (sum(QS < 0) > 0 | sum(QS > 100) > 0) {
-    stop("Please specify QS in the range [0, 100].")
+  if (sum(qs < 0) > 0 || sum(qs > 100) > 0) {
+    stop("Please specify qs in the range [0, 100].")
   }
-  if (QS[1] > QS[2]) {
+  if (qs[1] > qs[2]) {
     stop("Q S1 must be smaller Q S2.")
   }
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Data preparation
+
+  # Remove NA/NaN observations if desired
+  if (na_rm == TRUE) {
+    data <- na.omit(data)
+  } else {
+    if (any(is.na(data))) {
+      message("Note that data contains NA/NaN values.\n",
+              "  Please consider using the option na_rm = TRUE or\n",
+              "  imputing missing values.")
+    }
+  }
 
   # Remove unused levels
   data <- droplevels(data)
@@ -277,17 +295,17 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
                  FUN = function(x) length(x))$x
   df <- n - 1
   chisq_alpha <- qchisq(alpha, df)
-  z_P <- qnorm((1 + P) / 2)
-  K <- (1 + 1 / (2 * n)) * z_P * sqrt(df / chisq_alpha)
+  z_pp <- qnorm((1 + pp) / 2)
+  kk <- (1 + 1 / (2 * n)) * z_pp * sqrt(df / chisq_alpha)
 
   t_mean <- aggregate(subdat[, response_vbl], by = list(subdat$time.f),
-                      FUN = mean, na.rm = TRUE)$x
+                      FUN = mean, na.rm = na_rm)$x
   t_sd <- aggregate(subdat[, response_vbl], by = list(subdat$time.f),
-                    FUN = sd, na.rm = TRUE)$x
+                    FUN = sd, na.rm = na_rm)$x
   t_x <- unique(subdat$time)
 
-  ltl <- t_mean - K * t_sd
-  utl <- t_mean + K * t_sd
+  ltl <- t_mean - kk * t_sd
+  utl <- t_mean + kk * t_sd
 
   # Adjustment of the tolerance limit (if demanded)
   if (cap == TRUE) {
@@ -316,8 +334,8 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
                                rep("UTL", length(t_x))),
                      time = rep(t_x, times = 7),
                      response = c(t_mean, ltl, utl,
-                                  ltl - QS[1], utl + QS[1],
-                                  ltl - QS[2], utl + QS[2]))
+                                  ltl - qs[1], utl + qs[1],
+                                  ltl - qs[2], utl + qs[2]))
 
   if (!is.null(response)) {
     names(tmp1)[names(tmp1) == "response"] <- response_vbl
@@ -360,10 +378,10 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
                       reference = reference,
                       response = response_vbl,
                       alpha = alpha,
-                      P = P,
+                      pp = pp,
                       cap = cap,
                       bounds = bounds,
-                      QS = QS)
+                      qs = qs)
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Compilation of results
@@ -405,8 +423,9 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
 #'
 #' @example man/examples/examples_plot_mztia.R
 #'
+#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 aes
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 geom_line
 #' @importFrom ggplot2 geom_path
@@ -427,7 +446,7 @@ mztia <- function(data, shape, tcol, grouping, reference, response = NULL,
 #' @export
 
 plot_mztia <- function(x, ...) {
-  if (class(x) != "mztia") {
+  if (!inherits(x, "mztia")) {
     stop("The parameter x must be an object of class mztia.")
   }
 
@@ -467,7 +486,7 @@ plot_mztia <- function(x, ...) {
   # Reference group points: grey; test group points: red; lines: various colours
   t_colours <-
     c(c("red", "grey80")[as.numeric(levels(d_res$grouping) == reference) + 1],
-      c("royalblue", "cornsilk4", "darkorange1", "red1"))
+      c("royalblue", "olivedrab3", "darkorange1", "red1"))
 
   # Reference group: filled circles; test group: crosses; lines: .
   t_symbols <-
@@ -485,7 +504,9 @@ plot_mztia <- function(x, ...) {
 
   if (x == "time") {
     ggraph <-
-      ggplot(d_res, aes_string(x = x, y = y, colour = type, shape = type),
+      ggplot(d_res,
+             aes(x = .data[[x]], y = .data[[y]],
+                 colour = .data[[type]], shape = .data[[type]]),
              ...) +
       geom_point(
         data = d_res[d_res$frame == "points" & d_res$grouping == reference, ],
@@ -493,9 +514,9 @@ plot_mztia <- function(x, ...) {
       geom_point(
         data = d_res[d_res$frame == "points" & d_res$grouping != reference, ],
         size = 2) +
-      geom_line(data = d_res[d_res$type2 == "Mean", ], size = 1) +
-      geom_path(data = d_res[d_res$type2 == "LTL", ], size = 1) +
-      geom_path(data = d_res[d_res$type2 == "UTL", ], size = 1) +
+      geom_line(data = d_res[d_res$type2 == "Mean", ], linewidth = 1) +
+      geom_path(data = d_res[d_res$type2 == "LTL", ], linewidth = 1) +
+      geom_path(data = d_res[d_res$type2 == "UTL", ], linewidth = 1) +
       scale_colour_manual(
         values = t_colours, breaks = t_breaks, labels = t_labels,
         guide = guide_legend(
@@ -504,7 +525,8 @@ plot_mztia <- function(x, ...) {
       scale_shape_manual(
         values = t_symbols, breaks = t_breaks, labels = t_labels) +
       theme_bw() + theme(legend.justification = c(1, 0),
-                         legend.position = c(1, 0.01),
+                         legend.position = "inside",
+                         legend.position.inside = c(1, 0.01),
                          legend.key.size = unit(1.5, "lines"),
                          plot.margin = unit(c(0.2, 0.4, 0.2, 0.2), "lines"),
                          panel.grid.major = element_line(colour = "grey80"),
@@ -520,19 +542,26 @@ plot_mztia <- function(x, ...) {
   } else {
     ggraph <-
       ggplot(d_res,
-             aes_string(x = x, y = y, colour = grouping, shape = grouping),
+             aes(x = .data[[x]], y = .data[[y]],
+                 colour = .data[[grouping]], shape = .data[[grouping]]),
              ...) +
       geom_jitter(data = d_res[d_res$frame == "points", ],
                   position = position_jitter(spread)) +
       geom_errorbar(data = d_lim,
-                    mapping = aes_string(ymin = s2_ltl, ymax = s2_utl),
-                    colour = "red1", width = 2 * spread, size = 0.8) +
+                    mapping = aes(ymin = .data[[s2_ltl]],
+                                  ymax = .data[[s2_utl]]),
+                    colour = "red1", width = 2 * spread,
+                    linewidth = 0.8) +
       geom_errorbar(data = d_lim,
-                    mapping = aes_string(ymin = s1_ltl, ymax = s1_utl),
-                    colour = "darkorange1", width = 2 * spread, size = 1.0) +
+                    mapping = aes(ymin = .data[[s1_ltl]],
+                                  ymax = .data[[s1_utl]]),
+                    colour = "darkorange1", width = 2 * spread,
+                    linewidth = 1.0) +
       geom_errorbar(data = d_lim,
-                    mapping = aes_string(ymin = ltl, ymax = utl),
-                    colour = "cornsilk4", width = 2 * spread, size = 1.2) +
+                    mapping = aes(ymin = .data[[ltl]],
+                                  ymax = .data[[utl]]),
+                    colour = "cornsilk4", width = 2 * spread,
+                    linewidth = 1.2) +
       theme_bw() + theme(legend.position = "none",
                          plot.margin = unit(c(0.2, 0.4, 0.2, 0.2), "lines"),
                          panel.grid.major = element_line(colour = "grey80"),
@@ -541,7 +570,6 @@ plot_mztia <- function(x, ...) {
                          axis.title = element_text(size = 12),
                          axis.text = element_text(size = 12),
                          axis.ticks.length = unit(0.5, "lines"))
-
   }
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

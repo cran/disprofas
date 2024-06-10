@@ -2,61 +2,74 @@
 % Please edit documentation in R/utility.R
 \name{gep_by_nera}
 \alias{gep_by_nera}
-\title{Points on confidence region (found by Newton-Raphson search)}
+\title{Get points on confidence region bounds by Newton-Raphson search}
 \usage{
-gep_by_nera(n_p, K, mean_diff, S_pool, F_crit, y, max_trial, tol)
+gep_by_nera(n_p, kk, mean_diff, m_vc, ff_crit, y, max_trial, tol)
 }
 \arguments{
-\item{n_p}{A positive integer specifying the number of (time) points
+\item{n_p}{A positive integer that specifies the number of (time) points
 \eqn{n_p}.}
 
-\item{K}{A non-negative numeric value specifying the scaling factor \eqn{K}
-for the calculation of the Hotelling's \eqn{T^2} statistic.}
+\item{kk}{A non-negative numeric value that specifies the scaling factor
+\eqn{kk} for the calculation of the Hotelling's \eqn{T^2} statistic.}
 
 \item{mean_diff}{A vector of the mean differences between the dissolution
-profiles of the reference and the test batch. It must have the length
-specified by the parameter \eqn{n_p}.}
+profiles or model parameters of the reference and the test batch(es) or
+the averages of the model parameters of a specific group of batch(es)
+(reference or test). It must have the length specified by the parameter
+\eqn{n_p}.}
 
-\item{S_pool}{The pooled variance-covariance matrix of the dissolution
-profiles of the reference and the test batch. It must have the dimension
+\item{m_vc}{The pooled variance-covariance matrix of the dissolution
+profiles or model parameters of the reference and the test batch(es) or
+the variance-covariance matrix of the model parameters of a specific
+group of batch(es) (reference or test). It must have the dimension
 \eqn{n_p \times n_p}.}
 
-\item{F_crit}{The critical \eqn{F} value (i.e. a non-negative numeric).}
+\item{ff_crit}{The critical \eqn{F} value (i.e. a non-negative numeric).}
 
 \item{y}{A numeric vector of \eqn{y} values that serve as starting points
 for the Newton-Raphson search, i.e. values supposed to lie on or close to
 the confidence interval bounds. It must have a length of \eqn{n_p + 1}.}
 
-\item{max_trial}{A positive integer specifying the maximum number of
+\item{max_trial}{A positive integer that specifies the maximum number of
 Newton-Raphson search rounds to be performed.}
 
-\item{tol}{A non-negative numeric specifying the accepted minimal
+\item{tol}{A non-negative numeric that specifies the accepted minimal
 difference between two consecutive search rounds.}
 }
 \value{
 A list with the following elements is returned:
 \item{points}{A matrix with one column and \eqn{n_p + 1} rows is returned,
-  where rows \eqn{1} to \eqn{n_p} represent, for each time point, the points
-  on the \eqn{CR} bounds. For symmetry reasons, the points on the opposite
-  side are obtained by addition/subtraction. The last row in the matrix,
-  with index \eqn{n_p + 1}, represents the \eqn{\lambda} parameter of the
-  MLM, also known as \emph{lambda multiplier method}, that is used to
-  optimise under constraint(s). The variable \eqn{\lambda} is thus called
-  the \emph{Lagrange multiplier}.}
-\item{converged}{A logical stating if the NR algorithm converged or not.}
+  where rows \eqn{1} to \eqn{n_p} represent, for each time point or model
+  parameter, the points on the \eqn{\textit{CRB}}. For symmetry reasons,
+  the points on the opposite side are obtained by addition/subtraction.
+  The last row in the matrix, with index \eqn{n_p + 1}, represents the
+  \eqn{\lambda} parameter of the MLM, also known as \emph{lambda multiplier
+  method}, that is used to optimise under constraint(s). The variable
+  \eqn{\lambda} is thus called the \emph{Lagrange multiplier}.}
+\item{converged}{A logical indicating whether the NR algorithm converged
+  or not.}
+\item{points.on.crb}{A logical indicating whether the points found by the NR
+  algorithm sit on the sit on the confidence region bounds (\code{TRUE}) or
+  not (\code{FALSE}). Since it is not know a priori it is \code{NA} by
+  default. The parameter is set by the \code{\link{check_point_location}()}
+  function.}
 \item{n.trial}{Number of trials until convergence.}
 \item{max.trial}{Maximal number of trials.}
+\item{tol}{A non-negative numeric value that specifies the accepted minimal
+  difference between two consecutive search rounds, i.e. the tolerance.}
 }
 \description{
-The function \code{gep_by_nera()} is a function for finding points on
-confidence region (\eqn{CR}) bounds by aid of the \dQuote{Method of Lagrange
-Multipliers} (MLM) and by \dQuote{Newton-Raphson} (nera) optimisation. The
-multivariate confidence interval for profiles with four time points, e.g.,
-is an \dQuote{ellipse} in four dimensions.
+The function \code{gep_by_nera()} is a function for finding points that
+ideally sit on specific confidence region bounds (\eqn{\textit{CRB}}) by
+aid of the \dQuote{Method of Lagrange Multipliers} (MLM) and by
+\dQuote{Newton-Raphson} (nera) optimisation. The multivariate confidence
+interval for profiles with four time points, e.g., is an \dQuote{ellipse}
+in four dimensions.
 }
 \details{
 The function \code{gep_by_nera()} determines the points on the
-\eqn{CR} bounds for each of the \eqn{n_p} time points. It does so by aid
+\eqn{\textit{CRB}} for each of the \eqn{n_p} time points. It does so by aid
 of the \dQuote{Method of Lagrange Multipliers} (MLM) and by
 \dQuote{Newton-Raphson} (nera) optimisation, as proposed by Margaret
 Connolly (Connolly 2000).
@@ -81,8 +94,8 @@ stepwise procedure:
 \enumerate{
 \item Establish a similarity limit in terms of \dQuote{Multivariate
   Statistical Distance} (MSD) based on inter-batch differences in \% drug
-  release from reference (standard approved) formulations, i.e. the so-
-  called \dQuote{Equivalence Margin} (EM).
+  release from reference (standard approved) formulations, i.e. the
+  so-called \dQuote{Equivalence Margin} (EM).
 \item Calculate the MSD between test and reference mean dissolutions.
 \item Estimate the 90\% confidence interval (CI) of the true MSD as
   determined in step 2.
@@ -102,16 +115,21 @@ to this method, a multivariate statistical distance, called Mahalanobis
 distance, is used to measure the difference between two multivariate means.
 This distance measure is calculated as
 
-\deqn{D_M = \sqrt{ \left( \bm{x_T} - \bm{x_R} \right)^{\top}
-  \bm{S}_{pooled}^{-1} \left( \bm{x_T} - \bm{x_R} \right)} ,}{%
+\deqn{D_M = \sqrt{ \left( \bm{x}_T - \bm{x}_R \right)^{\top}
+  \bm{S}_{pooled}^{-1} \left( \bm{x}_T - \bm{x}_R \right)} ,}{%
   D_M = sqrt((x_T - x_R)^{\top} S_{pooled}^{-1} (x_T - x_R)) ,}
 
-where \eqn{\bm{S}_{pooled} = \frac{\left( \bm{S}_T + \bm{S}_R \right)}{2}}{%
-S_{pooled} = (S_T + S_R) / 2} is the sample variance-covariance matrix
-pooled across the batches, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R} are
-the vectors of the sample means for the test (\eqn{T}) and reference
+where \eqn{\bm{S}_{pooled}} is the sample variance-covariance matrix pooled
+across the comparative groups, \eqn{\bm{x}_T}{x_T} and \eqn{\bm{x}_R}{x_R}
+are the vectors of the sample means for the test (\eqn{T}) and reference
 (\eqn{R}) profiles, and \eqn{\bm{S}_T}{S_T} and \eqn{\bm{S}_R}{x_R} are the
-variance-covariance matrices of the test and reference profiles.
+variance-covariance matrices of the test and reference profiles. The pooled
+variance-covariance matrix \eqn{\bm{S}_{pooled}}{S_{pooled}} is calculated
+by
+
+\deqn{\bm{S}_{pooled} = \frac{(n_R - 1) \bm{S}_R + (n_T - 1) \bm{S}_T}{%
+  n_R + n_T - 2} .}{S_{pooled} = ((n_R - 1) S_R + (n_T - 1) S_T) /
+  (n_R + n_T - 2) .}
 
 In order to determine the similarity limits in terms of the MSD, i.e. the
 Mahalanobis distance between the two multivariate means of the dissolution
@@ -126,58 +144,53 @@ where \eqn{\bm{d}_g}{d_g} is a \eqn{1 \times p}{1 x p} vector with all
 e.g., \eqn{15}\%, for the maximum tolerable difference at all time points,
 and \eqn{p} is the number of sampling points. By assuming that the data
 follow a multivariate normal distribution, the 90\% confidence region
-(\eqn{CR}) bounds for the true difference between the mean vectors,
+(\eqn{\textit{CR}}) bounds for the true difference between the mean vectors,
 \eqn{\bm{\mu}_T - \bm{\mu}_R}{\mu_T - \mu_R}, can be computed for the
 resultant vector \eqn{\bm{\mu}}{\mu} to satisfy the following condition:
 
-\deqn{\bm{CR} = K \left( \bm{\mu} - \left( \bm{x_T} - \bm{x_R} \right)
-  \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} - \left( \bm{x_T} -
-  \bm{x_R} \right) \right) \leq F_{p, n_T + n_R - p - 1, 0.9} ,}{%
+\deqn{\bm{\textit{CR}} = K \left( \bm{\mu} - \left( \bm{x}_T -
+  \bm{x}_R \right) \right)^{\top} \bm{S}_{pooled}^{-1} \left( \bm{\mu} -
+  \left( \bm{x}_T - \bm{x}_R \right) \right) \leq
+  F_{p, n_T + n_R - p - 1, 0.9} ,}{%
   CR = sqrt((\mu - (x_T - x_R))^{\top} S_{pooled}^{-1} (\mu - (x_T - x_R)))
   \leq F_{p, n_T + n_R - p - 1, 0.9} ,}
 
 where \eqn{K} is the scaling factor that is calculated as
 
-\deqn{K = \frac{n_T n_R}{n_T + n_R} \cdot \frac{n_T + n_R - p - 1}{
-  \left( n_T + n_R - 2 \right) \cdot p} ,}{%
-  (n_T n_R) / (n_T + n_R) * (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
+\deqn{K = \frac{n_T n_R}{n_T + n_R} \; \frac{n_T + n_R - p - 1}{
+  \left( n_T + n_R - 2 \right) p} ,}{%
+  (n_T n_R) / (n_T + n_R) (n_T + n_R - p - 1) / ((n_T + n_R - 2) p) ,}
 
 and \eqn{F_{p, n_T + n_R - p - 1, 0.9}} is the \eqn{90^{th}} percentile of
 the \eqn{F} distribution with degrees of freedom \eqn{p} and
-\eqn{n_T + n_R - p - 1}. It is obvious that \eqn{(n_T + n_R)} must be greater
-than \eqn{(p + 1)}. The formula for \eqn{CR} gives a \eqn{p}-variate 90\%
-confidence region for the possible true differences. \cr
+\eqn{n_T + n_R - p - 1}, where \eqn{n_T} and \eqn{n_R} are the number of
+observations of the reference and the test group, respectively, and \eqn{p}
+is the number of sampling or time points, as mentioned already. It is
+obvious that \eqn{(n_T + n_R)} must be greater than \eqn{(p + 1)}. The
+formula for \eqn{\textit{CR}} gives a \eqn{p}-variate 90\% confidence region
+for the possible true differences. \cr
 }
 
 \examples{
 # Collecting the required information
 time_points <- suppressWarnings(as.numeric(gsub("([^0-9])", "",
                                                 colnames(dip1))))
-tico <- which(!is.na(time_points))
+tcol <- which(!is.na(time_points))
 b1 <- dip1$type == "R"
 
-n_tp <- length(tico)
-n_b1 <- length(dip1[b1, "type"])
-n_b2 <- length(dip1[!b1, "type"])
-df_b1 <- n_tp
-df_b2 <- n_b1 + n_b2 - n_tp - 1
-K_limit <- (n_b2 * n_b1) / (n_b2 + n_b1)
-K <- K_limit * df_b2 / (df_b1 * (n_b2 + n_b1 - 2))
-
-mean_b1 <- apply(X = dip1[b1, tico], MARGIN = 2, FUN = mean)
-mean_b2 <- apply(X = dip1[!b1, tico], MARGIN = 2, FUN = mean)
-mean_diff <- mean_b2 - mean_b1
-
-S_b1 <- cov(dip1[b1, tico])
-S_b2 <- cov(dip1[!b1, tico])
-S <- ((n_b1 - 1) * S_b1 + (n_b2 - 1) * S_b2) / (n_b1 + n_b2 - 2)
-
-F_crit <- qf(p = (1 - 0.05), df1 = df_b1, df2 = df_b2)
-y_b1 <- rep(1, times = (n_tp + 1))
+# Hotelling's T2 statistics
+l_hs <- get_T2_two(m1 = as.matrix(dip1[b1, tcol]),
+                   m2 = as.matrix(dip1[!b1, tcol]),
+                   signif = 0.05)
 
 # Calling gep_by_nera()
-res <- gep_by_nera(n_p = n_tp, K = K, mean_diff = mean_diff, S_pool = S,
-                   F_crit = F_crit, y = y_b1, max_trial = 100, tol = 1e-9)
+res <- gep_by_nera(n_p = as.numeric(l_hs[["Parameters"]]["df1"]),
+                   kk = as.numeric(l_hs[["Parameters"]]["K"]),
+                   mean_diff = l_hs[["means"]][["mean.diff"]],
+                   m_vc = l_hs[["S.pool"]],
+                   ff_crit = as.numeric(l_hs[["Parameters"]]["F.crit"]),
+                   y = rep(1, times = l_hs[["Parameters"]]["df1"] + 1),
+                   max_trial = 100, tol = 1e-9)
 
 # Expected result in res[["points"]]
 #              [,1]
@@ -195,11 +208,18 @@ res <- gep_by_nera(n_p = n_tp, K = K, mean_diff = mean_diff, S_pool = S,
 # represents the Lagrange multiplier lambda.
 
 # If 'max_trial' is too small, the Newton-Raphson search may not converge.
-tryCatch(
-  gep_by_nera(n_p = n_tp, K = K, mean_diff = mean_diff, S_pool = S,
-              F_crit = F_crit, y = y_b1, max_trial = 5, tol = 1e-9),
-  warning = function(w) message(w),
-  finally = message("\nMaybe increasing the number of max_trial could help."))
+\dontrun{
+  tryCatch(
+    gep_by_nera(n_p = as.numeric(l_hs[["Parameters"]]["df1"]),
+                kk = as.numeric(l_hs[["Parameters"]]["K"]),
+                mean_diff = l_hs[["means"]][["mean.diff"]],
+                m_vc = l_hs[["S.pool"]],
+                ff_crit = as.numeric(l_hs[["Parameters"]]["F.crit"]),
+                y = rep(1, times = l_hs[["Parameters"]]["df1"] + 1),
+                max_trial = 5, tol = 1e-9),
+    warning = function(w) message(w),
+    finally = message("\nMaybe increasing the number of max_trial could help."))
+}
 }
 \references{
 United States Food and Drug Administration (FDA). Guidance for industry:
@@ -214,9 +234,8 @@ testing, and \emph{in vivo} bioequivalence documentation (SUPAC-IR). 1995.\cr
 
 European Medicines Agency (EMA), Committee for Medicinal Products for
 Human Use (CHMP). Guideline on the Investigation of Bioequivalence. 2010;
-CPMP/EWP/QWP/1401/98 Rev. 1.\cr
-\url{https://www.ema.europa.eu/en/documents/scientific-guideline/
-guideline-investigation-bioequivalence-rev1_en.pdf}
+\href{https://www.ema.europa.eu/en/documents/scientific-guideline/guideline-investigation-bioequivalence-rev1_en.pdf}{
+CPMP/EWP/QWP/1401/98 Rev. 1}..
 
 Moore, J.W., and Flanner, H.H. Mathematical comparison of curves with an
 emphasis on \emph{in-vitro} dissolution profiles. \emph{Pharm Tech}. 1996;
@@ -233,5 +252,6 @@ NY.\cr
 \url{https://analytics.ncsu.edu/sesug/2000/p-902.pdf}
 }
 \seealso{
-\code{\link{mimcr}}, \code{\link{bootstrap_f2}}.
+\code{\link{check_point_location}}, \code{\link{mimcr}},
+\code{\link{bootstrap_f2}}.
 }

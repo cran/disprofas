@@ -11,11 +11,12 @@ mztia(
   grouping,
   reference,
   response = NULL,
+  na_rm = FALSE,
   alpha = 0.05,
-  P = 0.99,
+  pp = 0.99,
   cap = TRUE,
   bounds = c(0, 100),
-  QS = c(5, 15),
+  qs = c(5, 15),
   ...
 )
 }
@@ -29,43 +30,48 @@ information, e.g., \code{(t_0, t_5, t_10)}. If the data frame is in long
 format, it must have a column of time points (column specified via the
 \code{tcol} parameter).}
 
-\item{shape}{A character string specifying if the data frame is in long or
-in wide format.}
+\item{shape}{A character string that indicates whether the data frame is
+in long or in wide format.}
 
 \item{tcol}{If \code{shape} is \code{"wide"} an integer vector of indices,
-if \code{shape} is \code{"long"} an integer, specifying the column(s)
+if \code{shape} is \code{"long"} an integer that specifies the column(s)
 containing the profile time points. If the data frame is in \code{wide}
 format it is reshaped using the function \code{\link[stats]{reshape}()}
 from the \sQuote{\code{stats}} package.}
 
-\item{grouping}{A character string specifying the column in \code{data}
+\item{grouping}{A character string that specifies the column in \code{data}
 that contains the group names (i.e. a factorial variable, e.g., for the
 differentiation of batches or formulations of a drug product).}
 
-\item{reference}{A character string specifying the name of the reference
+\item{reference}{A character string that specifies the name of the reference
 group from the \code{grouping} variable.}
 
 \item{response}{A character string that is expected if \code{data} is
-provided in long format in order to specify the column with the \% drug
-release values. The default is \code{NULL}.}
+provided in long format to specify the column with the \% drug release
+values. The default is \code{NULL}.}
 
-\item{alpha}{A numeric value between 0 and 1 specifying the probability
+\item{na_rm}{A logical value that indicates whether observations containing
+\code{NA} (or \code{NaN}) values should be removed (\code{na_rm = TRUE})
+or not (\code{na_rm = FALSE}). The default is \code{na_rm = FALSE}.}
+
+\item{alpha}{A numeric value between 0 and 1 that specifies the probability
 level. The default is \code{0.05}.}
 
-\item{P}{A numeric value between 0 and 1 specifying the proportion of the
-population being enclosed by the tolerance interval boundaries. The
+\item{pp}{A numeric value between 0 and 1 that specifies the proportion of
+the population being enclosed by the tolerance interval boundaries. The
 default is \code{0.99}.}
 
-\item{cap}{A logical variable specifying if the calculated tolerance limits
-should be limited (i.e. \emph{cap}ped). The default is \code{TRUE}.}
+\item{cap}{A logical variable that indicates whether the calculated
+tolerance limits should be limited (i.e. \emph{cap}ped). The default is
+\code{TRUE}.}
 
-\item{bounds}{A numeric vector of the form \code{c(lower, upper)} specifying
-the \dQuote{lower} and \dQuote{upper} limits, respectively, for the \%
-drug release at which the calculated tolerance interval limits should
-be capped (see parameter \eqn{cap}. This parameter is only relevant if
-\code{cap = TRUE}. The default is \code{c(0, 100)}.}
+\item{bounds}{A numeric vector of the form \code{c(lower, upper)} that
+specifies the \dQuote{lower} and \dQuote{upper} limits, respectively, for
+the \% drug release at which the calculated tolerance interval limits
+should be capped (see parameter \eqn{cap}. This parameter is only relevant
+if \code{cap = TRUE}. The default is \code{c(0, 100)}.}
 
-\item{QS}{A numeric vector of the form \code{c(Q S1, Q S2)} that specifies
+\item{qs}{A numeric vector of the form \code{c(Q S1, Q S2)} that specifies
 the allowable deviations from the specifications in percent according to
 the \eqn{S1} and \eqn{S2} acceptance criteria of USP chapter <711> on
 dissolution. The default is \code{c(5, 15)}.}
@@ -82,31 +88,32 @@ following elements:
   the calculated tolerance interval results.}
 \item{Profile.TP}{If \code{shape} is \code{"wide"} a named numeric vector
   of the columns in \code{data} specified by \code{tcol}. Given that the
-  column names contain extractable numeric information, e.g., specifying
-  the testing time points of the dissolution profile, it contains the
-  corresponding values. Elements where no numeric information could be
-  extracted are \code{NA}. If \code{shape} is \code{"long"} it is a numeric
-  value, specifying the column containing the \% release values.}
+  column names contain extractable numeric information, e.g., the testing
+  time points of the dissolution profile, it contains the corresponding
+  numeric values. Elements where no numeric information could be extracted
+  are \code{NA}. If \code{shape} is \code{"long"} it is a numeric value that
+  specifies the column containing the \% release values.}
 }
 \description{
 The \emph{Martinez & Zhao Tolerance Interval Approach} (\code{mztia}) is a
 simple approach for the comparison of dissolution profiles. The
-\code{mztia()} function calculates tolerance intervals (TI) at each time
-point of the dissolution profiles of a set of reference batches. By aid
-of a graphical display the test batches are checked to lie within the TI
-boundaries or within certain limits exceeding the TI boundaries by a
-specified percentage.
+\code{mztia()} function calculates tolerance intervals (\eqn{\textit{TI}})
+at each time point of the dissolution profiles of a set of reference
+batches. By aid of a graphical display the test batches are checked to lie
+within the \eqn{\textit{TI}} boundaries or within certain limits exceeding
+the \eqn{\textit{TI}} boundaries by a specified percentage.
 }
 \details{
 The tolerance interval approach proposed by Martinez & Zhao (2018)
 is a simple approach for the comparison of dissolution profiles. The authors
 propose to calculate for each time point of a set of reference dissolution
-profiles a tolerance interval (\eqn{TI}), i.e. intervals containing \eqn{P}\%
-of the population of potential values for reference product at a probability
-level of \eqn{alpha / 2} per tail (i.e., \eqn{(1 - alpha) 100}\% confidence).
-Based on these \eqn{TI}s the dissolution profiles of the test batch(es) is
-(are) compared, i.e. the corresponding data points should lie within the
-\eqn{TI}s. The \eqn{TI}s are calculated as
+profiles a tolerance interval (\eqn{\textit{TI}}), i.e. intervals containing
+\eqn{pp}\% of the population of potential values for reference product at a
+probability level of \eqn{alpha / 2} per tail (i.e., \eqn{(1 - alpha) 100}\%
+confidence). Based on these \eqn{\textit{TI}}s the dissolution profiles of
+the test batch(es) is (are) compared, i.e. the corresponding data points
+should lie within the \eqn{\textit{TI}}s. The \eqn{\textit{TI}}s are
+calculated as
 
 \deqn{Y_{utl,ltl} = \bar{Y} \pm k \times s}{Y_{utl,ltl} = Y.bar +- k*s}
 
@@ -119,10 +126,10 @@ Since the goal of the comparison is not to confirm simply
 Martinez & Zhao propose allowing acceptable deviations by utilizing the
 concepts described by the United States Pharmacopoeia (USP), chapter <711>
 on dissolution, defining \emph{allowable deviations from a set of product
-specifications} (\eqn{Q}). The \eqn{TI}s serve as the target value \eqn{Q}
-at each sampling time. The allowable deviations about \eqn{Q} are defined
-by the \eqn{S1} and \eqn{S2} acceptance criteria of USP chapter <711> on
-dissolution:
+specifications} (\eqn{Q}). The \eqn{\textit{TI}}s serve as the target value
+\eqn{Q} at each sampling time. The allowable deviations about \eqn{Q} are
+defined by the \eqn{S1} and \eqn{S2} acceptance criteria of USP chapter
+<711> on dissolution:
 \enumerate{
 \item The \eqn{S1} level boundary is defined by \eqn{Q \pm 5}{Q +- 5}\%
   at each time point. For every 12 profiles tested, only one profile is
@@ -137,23 +144,16 @@ twelve observations (profiles) exceeding \eqn{S1} at one or more time points,
 additional runs of the reference product must be performed. It is deemed
 appropriate to use the same values of \eqn{S1} and \eqn{S2} across all time
 points because the high variability associated with the early sampling times
-is already factored into the \eqn{TI}s.
+is already factored into the \eqn{\textit{TI}}s.
 
-\eqn{TI} calculation according to Hahn is proposed because it appeared to be
-more numerically stable and gave more consistent \eqn{TI}s than the \eqn{TI}
-calculation method proposed by Howe (Howe 1969) when samples were very
-variable. The reason might be due to the less stringent requirements
-imposed by Hahn's method with respect to the normality of the data.
+\eqn{\textit{TI}} calculation according to Hahn is proposed because it
+appeared to be more numerically stable and gave more consistent
+\eqn{\textit{TI}}s than the \eqn{\textit{TI}} calculation method proposed
+by Howe (Howe 1969) when samples were very variable. The reason might be due
+to the less stringent requirements imposed by Hahn's method with respect to
+the normality of the data.
 }
 \examples{
-# Fluid weights of 100 drink cans were measured in ounces:
-str(dip5)
-
-# 'data.frame':	100 obs. of  3 variables:
-#   $ type  : Factor w/ 1 level "reference": 1 1 1 1 1 1 1 1 1 1 ...
-# $ batch : Factor w/ 100 levels "b1","b10","b100",..: 1 13 24 35 46 57 68 ...
-# $ weight: num  12.1 12 12 12 12 ...
-
 # Calculation of tolerance intervals
 m_alpha_P <- matrix(c(rep(c(0.01, 0.05, 0.1), each = 3),
                       1 - rep(c(0.1, 0.05, 0.01), times = 3)),
@@ -162,13 +162,13 @@ m_alpha_P <- matrix(c(rep(c(0.01, 0.05, 0.1), each = 3),
 ll <-
   apply(m_alpha_P, MARGIN = 1, FUN = function(x)
     mztia(data = dip5, shape = "long", tcol = 1, grouping = "type",
-          reference = "reference", response = "weight", alpha = x[1],
-          P = x[2], cap = FALSE)[["Data"]][102, "weight"])
+          reference = "reference", response = "weight", na_rm = FALSE,
+          alpha = x[1], P = x[2], cap = FALSE)[["Data"]][102, "weight"])
 ul <-
   apply(m_alpha_P, MARGIN = 1, FUN = function(x)
     mztia(data = dip5, shape = "long", tcol = 1, grouping = "type",
-          reference = "reference", response = "weight", alpha = x[1],
-          P = x[2], cap = FALSE)[["Data"]][103, "weight"])
+          reference = "reference", response = "weight", na_rm = FALSE,
+          alpha = x[1], P = x[2], cap = FALSE)[["Data"]][103, "weight"])
 
 # Expected results in ll and ul
 rbind(ll, ul)
@@ -180,22 +180,6 @@ rbind(ll, ul)
 # ul 12.1433
 
 # Use a data frame in wide format
-# Dissolution data of one reference batch and one test batch of n = 6
-# tablets each:
-str(dip1)
-
-# 'data.frame':	12 obs. of  10 variables:
-# $ type  : Factor w/ 2 levels "R","T": 1 1 1 1 1 1 2 2 2 2 ...
-# $ tablet: Factor w/ 6 levels "1","2","3","4",..: 1 2 3 4 5 6 1 2 3 4 ...
-# $ t.5   : num  42.1 44.2 45.6 48.5 50.5 ...
-# $ t.10  : num  59.9 60.2 55.8 60.4 61.8 ...
-# $ t.15  : num  65.6 67.2 65.6 66.5 69.1 ...
-# $ t.20  : num  71.8 70.8 70.5 73.1 72.8 ...
-# $ t.30  : num  77.8 76.1 76.9 78.5 79 ...
-# $ t.60  : num  85.7 83.3 83.9 85 86.9 ...
-# $ t.90  : num  93.1 88 86.8 88 89.7 ...
-# $ t.120 : num  94.2 89.6 90.1 93.4 90.8 ...
-
 # Using the defaults; Limits are capped to the range specified by 'bounds'
 res1 <- mztia(data = dip1, shape = "wide", tcol = 3:10, grouping = "type",
               reference = "R")
@@ -247,11 +231,11 @@ isTRUE(all.equal(res2$Limits, res3$Limits))
 \references{
 Martinez, M.N., and Zhao, X. A simple approach for comparing the
 \emph{in vitro} dissolution profiles of highly variable drug products: a
-proposal. \emph{AAPS Journal}. (2018); \strong{20}: 78.\cr
+proposal. \emph{AAPS Journal}. 2018; \strong{20}: 78.\cr
 \doi{10.1208/s12248-018-0238-1}
 
 Howe, W.G. Two-sided tolerance limits for normal populations - some
-improvements. \emph{J Am Stat Assoc}. (1969); \strong{64}: 610-620.\cr
+improvements. \emph{J Am Stat Assoc}. 1969; \strong{64}: 610-620.\cr
 \doi{10.1080/01621459.1969.10500999}
 
 Hahn, G.J., and Meeker, W. Q. Statistical intervals: A guide for
