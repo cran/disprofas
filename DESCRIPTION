@@ -1,7 +1,7 @@
 Type: Package
 Package: disprofas
 Title: Non-Parametric Dissolution Profile Analysis
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(
     person("Pius", "Dahinden", , "pius.dahinden@tillotts.com", role = c("aut", "cre")),
     person("Tillotts Pharma AG", , , "tillotts@tillotts.com", role = c("cph", "fnd"))
@@ -26,16 +26,16 @@ License: GPL (>= 2)
 URL: https://github.com/piusdahinden/disprofas
 BugReports: https://github.com/piusdahinden/disprofas/issues
 Depends: R (>= 4.0)
-Imports: boot, ggplot2, rlang, lifecycle
+Imports: boot, ggplot2, rlang
 Suggests: testthat, T2EQ
 Encoding: UTF-8
 Language: en-GB
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2024-06-10 08:19:59 UTC; piusd
+Packaged: 2025-03-23 13:54:12 UTC; piusd
 Author: Pius Dahinden [aut, cre],
   Tillotts Pharma AG [cph, fnd]
 Maintainer: Pius Dahinden <pius.dahinden@tillotts.com>
 Repository: CRAN
-Date/Publication: 2024-06-10 08:40:02 UTC
+Date/Publication: 2025-03-24 01:00:07 UTC

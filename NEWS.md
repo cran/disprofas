@@ -1,5 +1,15 @@
 ---
 
+# disprofas 0.2.1
+
+- A few test cases checking function output were modified because errors
+  occurred with the current R development environment.
+- References to mztia list elements for the output by the print() function
+  were corrected.
+- The deprecated function get_hotellings() has been removed for good.
+
+---
+
 # disprofas 0.2.0
 
 - The deprecated ggplot2 function aes_string() has been replaced by aes().

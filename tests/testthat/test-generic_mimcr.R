@@ -20,8 +20,12 @@ test_that("print_and_thus_summary.mimcr_succeeds", {
   # <-><-><-><->
 
   expect_s3_class(expect_output(print(re1), "MIMCR"), "mimcr")
-  expect_output(print(re1), "Yes")
-  expect_output(print(re1), "Similar")
+  expect_output(print(re1), "Did the Newton-Raphson search converge? Yes",
+                fixed = TRUE)
+  expect_output(print(re1), "confidence region boundary (CRB)? Yes",
+                fixed = TRUE)
+  expect_output(print(re1), "Tsong (1996):  Similar", fixed = TRUE)
+  expect_output(print(re1), "Hoffelder (2016):  Similar", fixed = TRUE)
 
   expect_output(summary(re1, digits = 5), "3")
   expect_output(summary(re1, digits = 5), "20")
@@ -36,33 +40,23 @@ test_that("print_and_thus_summary.mimcr_succeeds", {
   expect_output(summary(re1, digits = 5), "4.8993")
   expect_output(summary(re1, digits = 5), "2.8908e-08")
 
-  expect_equivalent(re2[["Similarity"]]["Tsong"], as.character(NA))
-  expect_equivalent(re2[["NR.CI"]][["CI"]][, "LCL"], rep(NA, 3))
-  expect_equivalent(re2[["NR.CI"]][["CI"]][, "UCL"], rep(NA, 3))
-  expect_equivalent(re2[["NR.CI"]][["converged"]], FALSE)
-  expect_equivalent(re2[["NR.CI"]][["points.on.crb"]], NA)
-  expect_output(print(re2, digits = 5),
-                "Did the Newton-Raphson search converge\\? No")
-  expect_output(print(re2, digits = 5),
-                "Are the points located on the ",
-                "confidence region boundary \\(CRB\\)\\? NA")
-  expect_output(print(re2, digits = 5),
-                "Observed upper limit:                     NA")
-  expect_output(print(re2, digits = 5),
-                "Tsong \\(1996\\):  NA ")
+  expect_s3_class(expect_output(print(re2), "MIMCR"), "mimcr")
+  expect_output(print(re2), "Did the Newton-Raphson search converge? No",
+                fixed = TRUE)
+  expect_output(print(re2), "confidence region boundary (CRB)? NA",
+                fixed = TRUE)
+  expect_output(print(re2), "Observed upper limit:                 NA",
+                fixed = TRUE)
+  expect_output(print(re2), "Tsong (1996):  NA", fixed = TRUE)
+  expect_output(print(re2), "Hoffelder (2016):  Similar", fixed = TRUE)
 
-  expect_equivalent(re3[["Similarity"]]["Tsong"], as.character(NA))
-  expect_equivalent(re3[["NR.CI"]][["CI"]][, "LCL"], rep(NA, 2))
-  expect_equivalent(re3[["NR.CI"]][["CI"]][, "UCL"], rep(NA, 2))
-  expect_equivalent(re3[["NR.CI"]][["converged"]], NA)
-  expect_equivalent(re3[["NR.CI"]][["points.on.crb"]], NA)
-  expect_output(print(re3, digits = 5),
-                "Did the Newton-Raphson search converge\\? NA")
-  expect_output(print(re3, digits = 5),
-                "Are the points located on the ",
-                "confidence region boundary \\(CRB\\)\\? NA")
-  expect_output(print(re3, digits = 5),
-                "Observed upper limit:                     NA")
-  expect_output(print(re3, digits = 5),
-                "Tsong \\(1996\\):  NA ")
+  expect_s3_class(expect_output(print(re3), "MIMCR"), "mimcr")
+  expect_output(print(re3), "Did the Newton-Raphson search converge? NA",
+                fixed = TRUE)
+  expect_output(print(re3), "confidence region boundary (CRB)? NA",
+                fixed = TRUE)
+  expect_output(print(re3), "Observed upper limit:                 NA",
+                fixed = TRUE)
+  expect_output(print(re3), "Tsong (1996):  NA", fixed = TRUE)
+  expect_output(print(re3), "Hoffelder (2016):  Similar", fixed = TRUE)
 })

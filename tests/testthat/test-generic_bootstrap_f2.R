@@ -20,8 +20,9 @@ test_that("print_and_thus_summary.bootstrap_f2_succeeds", {
 
   expect_s3_class(expect_output(print(re), "Shah"), "bootstrap_f2")
   expect_output(print(re), "STRATIFIED BOOTSTRAP")
-  expect_output(print(re), "BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS")
+  expect_output(print(re), "Based on 200 bootstrap replicates")
 
-  expect_output(print(re, digits = 5), "50.072")
+  expect_output(print(re, digits = 5), "t1*   50.072 -0.025532      0.9488",
+                fixed = TRUE)
   expect_output(print(re, digits = 5), "48.646")
 })

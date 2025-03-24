@@ -327,10 +327,10 @@ summary.mztia <- function(object, ...) {
   cat("TL: Tolerance Interval Limit (TL);",
       "LTL: lower TL;",
       "UTL: upper TL;",
-      paste0("S1: level 1 boundary (LTL - ", object[["Variables"]]$QS[1],
-             ") or (UTL + ",  object[["Variables"]]$QS[1], ");"),
-      paste0("S2: level 2 boundary (LTL - ", object[["Variables"]]$QS[2],
-             ") or (UTL + ",  object[["Variables"]]$QS[2], ").\n\n"))
+      paste0("\nS1: level 1 boundary (LTL - ", object[["Variables"]]$qs[1],
+             ") or (UTL + ",  object[["Variables"]]$qs[1], ");"),
+      paste0("\nS2: level 2 boundary (LTL - ", object[["Variables"]]$qs[2],
+             ") or (UTL + ",  object[["Variables"]]$qs[2], ").\n\n"))
 
   invisible(object)
 }

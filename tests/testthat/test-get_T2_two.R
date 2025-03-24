@@ -65,7 +65,7 @@ test_that("get_T2_two_succeeds", {
   expect_equal(signif(l_res3_maj$Parameters[["p.F"]], 7), 2.719240e-09)
 })
 
-test_that("get_hotelling_successfully_calculates_CIs", {
+test_that("get_T2_two_successfully_calculates_CIs", {
   l_res <- get_T2_two(
     m1 = as.matrix(dip11[dip11$Status == "counterfeit", 2:7]),
     m2 = as.matrix(dip11[dip11$Status == "genuine", 2:7]),

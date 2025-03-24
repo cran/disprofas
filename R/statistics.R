@@ -249,31 +249,6 @@ get_T2_one <- function(m, mu, signif, na_rm = FALSE) {
 
 #' Hotelling's statistics (for two independent (small) samples)
 #'
-#' The function \code{get_hotellings()} estimates the parameters for Hotelling's
-#' two-sample \eqn{T^2} statistic for small samples. \strong{Note that the
-#' function \code{get_hotellings()} is deprecated}. Upon the introduction of
-#' the new function \code{get_T2_one()} it was renamed to \code{get_T2_two()}.
-#' Please use the new function \code{get_T2_two()} instead of the obsolete
-#' function \code{get_hotellings()}.
-#'
-#' @inherit get_T2_two params details return references seealso
-#'
-#' @example man/examples/examples_get_hotellings.R
-#'
-#' @importFrom lifecycle deprecate_soft
-#'
-#' @export
-
-get_hotellings <- function(m1, m2, signif) {
-  deprecate_soft("0.1.4", "get_hotellings()", "get_T2_two()")
-
-  res <- get_T2_two(m1 = m1, m2 = m2, signif = signif)
-
-  return(res)
-}
-
-#' Hotelling's statistics (for two independent (small) samples)
-#'
 #' The function \code{get_T2_two()} estimates the parameters for Hotelling's
 #' two-sample \eqn{T^2} statistic for small samples.
 #'
